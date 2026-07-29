@@ -24,7 +24,7 @@ export function StatsRow({ done, streak, avg, bestDay }: StatsRowProps) {
   ];
 
   return (
-    <div className="grid grid-cols-4 rounded-2xl border border-border bg-card py-5">
+    <div className="glass grid grid-cols-4 rounded-2xl py-5">
       {stats.map(({ icon: Icon, value, label, color }) => (
         <div key={label} className="flex flex-col items-center gap-1.5">
           <Icon className={`h-5 w-5 ${color}`} />

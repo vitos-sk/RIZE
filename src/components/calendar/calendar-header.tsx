@@ -31,7 +31,7 @@ export function CalendarHeader({ year, month, onPrev, onNext }: CalendarHeaderPr
         type="button"
         onClick={onPrev}
         aria-label="Предыдущий месяц"
-        className="rounded-full p-2 text-gold transition-colors hover:bg-card"
+        className="glass-soft rounded-full p-2 text-gold transition-colors hover:bg-white/10"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -42,7 +42,7 @@ export function CalendarHeader({ year, month, onPrev, onNext }: CalendarHeaderPr
         type="button"
         onClick={onNext}
         aria-label="Следующий месяц"
-        className="rounded-full p-2 text-gold transition-colors hover:bg-card"
+        className="glass-soft rounded-full p-2 text-gold transition-colors hover:bg-white/10"
       >
         <ChevronRight className="h-5 w-5" />
       </button>

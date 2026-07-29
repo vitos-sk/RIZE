@@ -14,7 +14,15 @@ const CATEGORY_BADGE: Record<string, string> = {
   Разум: "bg-purple-500/15 text-purple-400",
 };
 
+const CATEGORY_TEXT: Record<string, string> = {
+  Спорт: "text-success",
+  Работа: "text-blue-400",
+  Здоровье: "text-purple-400",
+  Разум: "text-purple-400",
+};
+
 const FALLBACK_DOTS = ["bg-blue-400", "bg-purple-400", "bg-pink-400", "bg-teal-400"];
+const FALLBACK_TEXTS = ["text-blue-400", "text-purple-400", "text-pink-400", "text-teal-400"];
 const FALLBACK_BADGES = [
   "bg-blue-500/15 text-blue-400",
   "bg-purple-500/15 text-purple-400",
@@ -30,6 +38,10 @@ function hashCode(value: string): number {
 
 export function categoryDotColor(category: string): string {
   return CATEGORY_DOT[category] ?? FALLBACK_DOTS[hashCode(category) % FALLBACK_DOTS.length];
+}
+
+export function categoryTextColor(category: string): string {
+  return CATEGORY_TEXT[category] ?? FALLBACK_TEXTS[hashCode(category) % FALLBACK_TEXTS.length];
 }
 
 export function categoryBadgeClass(category: string): string {

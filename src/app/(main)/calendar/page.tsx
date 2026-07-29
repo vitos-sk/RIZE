@@ -101,7 +101,7 @@ export default function CalendarPage() {
         type="button"
         onClick={openAddFlow}
         aria-label="Добавить новую задачу"
-        className="absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-bg shadow-lg transition-transform active:scale-95"
+        className="glass-gold absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
       >
         <Plus className="h-6 w-6" />
       </button>

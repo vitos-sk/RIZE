@@ -26,13 +26,13 @@ export function AchievementsRow({ earnedCount, achievements }: AchievementsRowPr
         {achievements.map(({ icon: Icon, title, subtitle, color, unlocked }) => (
           <div
             key={title}
-            className={`flex w-32 shrink-0 flex-col items-center gap-2 rounded-2xl border p-4 text-center ${
-              unlocked ? `${BORDER[color]} bg-card` : "border-border bg-card/50 opacity-60"
+            className={`glass flex w-32 shrink-0 flex-col items-center gap-2 rounded-2xl p-4 text-center ${
+              unlocked ? BORDER[color] : "opacity-60"
             }`}
           >
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                unlocked ? ICON_BG[color] : "bg-muted/15"
+              className={`glass-chip flex h-12 w-12 items-center justify-center rounded-full ${
+                unlocked ? ICON_BG[color] : "bg-white/10"
               }`}
             >
               <Icon className={`h-6 w-6 ${unlocked ? ICON_FG[color] : "text-muted"}`} />
@@ -40,8 +40,8 @@ export function AchievementsRow({ earnedCount, achievements }: AchievementsRowPr
             <span className="text-sm font-bold text-fg">{title}</span>
             <span className="text-xs text-muted">{subtitle}</span>
             <span
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                unlocked ? `${ICON_BG[color]} ${ICON_FG[color]}` : "bg-muted/15 text-muted"
+              className={`glass-chip flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                unlocked ? `${ICON_BG[color]} ${ICON_FG[color]}` : "bg-white/10 text-muted"
               }`}
             >
               {!unlocked && <Lock className="h-2.5 w-2.5" />}
@@ -55,9 +55,9 @@ export function AchievementsRow({ earnedCount, achievements }: AchievementsRowPr
 }
 
 const BORDER: Record<string, string> = {
-  orange: "border-orange-500/30",
-  success: "border-success/30",
-  purple: "border-purple-500/30",
+  orange: "border-orange-500/40",
+  success: "border-success/40",
+  purple: "border-purple-500/40",
 };
 
 const ICON_BG: Record<string, string> = {

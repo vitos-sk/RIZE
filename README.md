@@ -1,37 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FokusTracker (RIZE)
 
-## Getting Started
+Геймифицированный трекер задач, целей и привычек: галочка → +XP → уровень и стрик растут →
+график вверх. Single-user, без бэкенда — Next.js + Firebase (Firestore + Auth).
 
-First, run the development server:
+## Локальный запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # заполнить ключами своего Firebase-проекта
+npm run dev                        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Проверка перед деплоем:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Переменные окружения
 
-## Learn More
+Все шесть переменных обязательны — без них Firebase SDK падает на инициализации:
 
-To learn more about Next.js, take a look at the following resources:
+| Переменная | Где взять |
+| --- | --- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase Console → Project settings → Your apps → SDK setup |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | там же |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | там же |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | там же |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | там же |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | там же |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Префикс `NEXT_PUBLIC_` означает, что значения попадают в клиентский бандл. Для Firebase Web SDK
+это штатно: доступ к данным ограничивают Firestore Security Rules (`firestore.rules`), а не
+секретность ключа.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Деплой на Vercel
 
-## Deploy on Vercel
+1. Импортировать репозиторий на [vercel.com/new](https://vercel.com/new). Framework определится
+   как Next.js, команды сборки менять не нужно.
+2. В **Settings → Environment Variables** добавить все шесть переменных для окружений
+   Production, Preview и Development.
+3. Задеплоить и скопировать выданный домен (`<project>.vercel.app`).
+4. **Firebase Console → Authentication → Settings → Authorized domains** — добавить этот домен,
+   иначе вход по email/паролю на проде вернёт `auth/unauthorized-domain`.
+5. **Firebase Console → Firestore → Rules** — вставить содержимое `firestore.rules` и нажать
+   Publish (по умолчанию правила тестового режима протухают и закрывают доступ).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# RIZE
+Каждый push в `main` триггерит новый production-деплой, ветки и PR получают preview-деплои.

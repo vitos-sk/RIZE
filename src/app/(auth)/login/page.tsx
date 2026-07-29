@@ -94,7 +94,7 @@ export default function LoginPage() {
       </div>
 
       <div className="flex flex-col gap-5 pb-2">
-        <div className="flex items-center gap-1 rounded-2xl border border-border bg-card p-1">
+        <div className="glass-soft flex items-center gap-1 rounded-2xl p-1">
           {(["signin", "signup"] as const).map((id) => {
             const isActive = id === mode;
             return (
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setMode(id)}
                 className={`flex-1 rounded-xl py-2 text-sm font-medium transition-colors ${
-                  isActive ? "bg-bg text-gold" : "text-muted hover:text-fg"
+                  isActive ? "glass-chip bg-white/10 text-gold" : "text-muted hover:text-fg"
                 }`}
               >
                 {id === "signin" ? "Вход" : "Регистрация"}
@@ -113,7 +113,7 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <label className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
+          <label className="glass-field flex items-center gap-3 rounded-2xl px-4 py-3.5">
             <Mail className="h-4 w-4 shrink-0 text-muted" />
             <input
               type="email"
@@ -125,7 +125,7 @@ export default function LoginPage() {
               className="w-full bg-transparent text-[15px] text-fg placeholder-muted outline-none"
             />
           </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
+          <label className="glass-field flex items-center gap-3 rounded-2xl px-4 py-3.5">
             <Lock className="h-4 w-4 shrink-0 text-muted" />
             <input
               type="password"
@@ -144,7 +144,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-2xl bg-gold py-3.5 text-center text-[15px] font-semibold text-bg disabled:opacity-60"
+            className="glass-gold w-full rounded-2xl py-3.5 text-center text-[15px] font-semibold text-bg disabled:opacity-60"
           >
             {submitting
               ? "Подождите…"

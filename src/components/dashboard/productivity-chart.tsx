@@ -1,5 +1,6 @@
 "use client";
 
+import { TrendingDown, TrendingUp } from "lucide-react";
 import {
   Bar,
   CartesianGrid,
@@ -9,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { PeriodTabs, type Period } from "@/components/stats/period-tabs";
 
 export interface DailyPoint {
   day: string;
@@ -18,11 +20,35 @@ export interface DailyPoint {
 
 interface ProductivityChartProps {
   data: DailyPoint[];
+  period: Period;
+  onPeriodChange: (period: Period) => void;
+  trendPercent: number;
+  comparisonLabel: string;
 }
 
-export function ProductivityChart({ data }: ProductivityChartProps) {
+export function ProductivityChart({
+  data,
+  period,
+  onPeriodChange,
+  trendPercent,
+  comparisonLabel,
+}: ProductivityChartProps) {
+  const isUp = trendPercent >= 0;
+  const TrendIcon = isUp ? TrendingUp : TrendingDown;
+
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="glass rounded-2xl p-4">
+      <PeriodTabs value={period} onChange={onPeriodChange} />
+
+      <div className="mb-4 mt-3 flex items-center justify-between">
+        <span className={`flex items-center gap-1.5 text-sm font-bold ${isUp ? "text-success" : "text-danger"}`}>
+          <TrendIcon className="h-4 w-4" />
+          {isUp ? "+" : ""}
+          {trendPercent}%
+          <span className="font-normal text-muted">vs {comparisonLabel}</span>
+        </span>
+      </div>
+
       <div className="mb-4 flex items-center gap-5 text-xs text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-gold" />
@@ -37,7 +63,7 @@ export function ProductivityChart({ data }: ProductivityChartProps) {
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-            <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} stroke="rgb(255 255 255 / 0.12)" strokeDasharray="3 3" />
             <XAxis
               dataKey="day"
               tickLine={false}

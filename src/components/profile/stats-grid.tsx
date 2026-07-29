@@ -45,9 +45,9 @@ export function StatsGrid({
         {stats.map(({ icon: Icon, value, label, color }) => (
           <div
             key={label}
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
+            className="glass flex items-center gap-3 rounded-2xl p-4"
           >
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${ICON_BG[color]}`}>
+            <div className={`glass-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${ICON_BG[color]}`}>
               <Icon className={`h-5 w-5 ${ICON_FG[color]}`} />
             </div>
             <div className="flex flex-col">
@@ -66,7 +66,7 @@ const ICON_BG: Record<string, string> = {
   success: "bg-success/15",
   orange: "bg-orange-500/15",
   blue: "bg-blue-500/15",
-  muted: "bg-muted/15",
+  muted: "bg-white/10",
   purple: "bg-purple-500/15",
 };
 

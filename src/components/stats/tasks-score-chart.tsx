@@ -35,7 +35,7 @@ function scoreDot(bestIndex: number, worstIndex: number) {
     if (index === bestIndex) {
       return (
         <g>
-          <rect x={cx - 17} y={cy - 27} width={34} height={13} rx={4} fill="var(--color-card)" />
+          <rect x={cx - 17} y={cy - 27} width={34} height={13} rx={4} fill="#12121a" fillOpacity={0.85} />
           <text x={cx} y={cy - 17} textAnchor="middle" fill="var(--color-gold)" fontSize={9} fontWeight={700}>
             ЛУЧШ
           </text>
@@ -48,7 +48,7 @@ function scoreDot(bestIndex: number, worstIndex: number) {
       return (
         <g>
           <circle cx={cx} cy={cy} r={5} fill="var(--color-danger)" stroke="var(--color-fg)" strokeWidth={2} />
-          <rect x={cx - 18} y={cy + 11} width={36} height={13} rx={4} fill="var(--color-card)" />
+          <rect x={cx - 18} y={cy + 11} width={36} height={13} rx={4} fill="#12121a" fillOpacity={0.85} />
           <text x={cx} y={cy + 21} textAnchor="middle" fill="var(--color-danger)" fontSize={9} fontWeight={700}>
             ХУДШ
           </text>
@@ -86,11 +86,15 @@ function axisTick(bestIndex: number, worstIndex: number, todayLabel?: string) {
 }
 
 export function TasksScoreChart({ data, todayLabel, comparisonLabel }: TasksScoreChartProps) {
-  const bestIndex = data.reduce((best, d, i) => (d.score > data[best].score ? i : best), 0);
-  const worstIndex = data.reduce((worst, d, i) => (d.score < data[worst].score ? i : worst), 0);
+  const maxIndex = data.reduce((best, d, i) => (d.score > data[best].score ? i : best), 0);
+  const minIndex = data.reduce((worst, d, i) => (d.score < data[worst].score ? i : worst), 0);
+  // Пока все корзины равны (в том числе на пустом периоде) выделять нечего.
+  const hasSpread = data.length > 0 && data[maxIndex].score !== data[minIndex].score;
+  const bestIndex = hasSpread ? maxIndex : -1;
+  const worstIndex = hasSpread ? minIndex : -1;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="glass rounded-2xl p-4">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-xs font-semibold tracking-wide text-muted">ЗАДАЧИ И СЧЁТ</span>
         <div className="flex items-center gap-4 text-xs text-muted">
@@ -108,7 +112,7 @@ export function TasksScoreChart({ data, todayLabel, comparisonLabel }: TasksScor
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 24, right: 4, left: 4, bottom: 4 }}>
-            <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} stroke="rgb(255 255 255 / 0.12)" strokeDasharray="3 3" />
             <XAxis
               dataKey="label"
               tickLine={false}

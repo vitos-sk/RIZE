@@ -15,7 +15,7 @@ interface PeriodTabsProps {
 
 export function PeriodTabs({ value, onChange }: PeriodTabsProps) {
   return (
-    <div className="flex items-center gap-1 rounded-2xl border border-border bg-card p-1">
+    <div className="glass-soft flex items-center gap-1 rounded-2xl p-1">
       {PERIODS.map(({ id, label }) => {
         const isActive = id === value;
         return (
@@ -24,7 +24,7 @@ export function PeriodTabs({ value, onChange }: PeriodTabsProps) {
             type="button"
             onClick={() => onChange(id)}
             className={`flex-1 rounded-xl py-2 text-sm font-medium transition-colors ${
-              isActive ? "bg-bg text-gold" : "text-muted hover:text-fg"
+              isActive ? "glass-chip bg-white/10 text-gold" : "text-muted hover:text-fg"
             }`}
           >
             {label}

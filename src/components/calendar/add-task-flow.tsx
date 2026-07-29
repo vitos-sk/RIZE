@@ -63,17 +63,17 @@ export function AddTaskFlow({ todayKey, initialCursor, tasksByDate, logsByDate, 
 
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
 
-      <div className="absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t border-border bg-card px-5 pb-6 pt-3 shadow-2xl">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+      <div className="glass-bar absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
 
         <div className="mb-4 flex items-center justify-between">
           <button
             type="button"
             onClick={step === "date" ? onClose : goBack}
             aria-label={step === "date" ? "Закрыть" : "Назад"}
-            className="rounded-full p-1.5 text-muted transition-colors hover:bg-bg hover:text-fg"
+            className="glass-chip rounded-full p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-fg"
           >
             {step === "date" ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </button>
@@ -111,7 +111,7 @@ export function AddTaskFlow({ todayKey, initialCursor, tasksByDate, logsByDate, 
                   setCategory(null);
                   setStep("form");
                 }}
-                className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
+                className="glass-soft w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
               >
                 Без категории
               </button>
@@ -124,7 +124,7 @@ export function AddTaskFlow({ todayKey, initialCursor, tasksByDate, logsByDate, 
                     setCategory(cat);
                     setStep("form");
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-xl border border-border bg-bg px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
+                  className="glass-soft flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${categoryDotColor(cat)}`} />
                   {cat}
@@ -153,13 +153,13 @@ export function AddTaskFlow({ todayKey, initialCursor, tasksByDate, logsByDate, 
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Например, Утренняя пробежка"
                 autoFocus
-                className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-sm text-fg outline-none focus:border-gold/60"
+                className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
               />
             </div>
             <button
               type="submit"
               disabled={!title.trim()}
-              className="flex w-full items-center justify-center rounded-xl bg-gold py-3 text-sm font-bold text-bg disabled:opacity-50"
+              className="glass-gold flex w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-bg disabled:opacity-50"
             >
               Добавить
             </button>

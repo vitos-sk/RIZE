@@ -84,7 +84,10 @@ logs/{logId}: taskId, date, type, xp, onTime, createdAt   ← ГЛАВНАЯ к�
 xpForCompletion(task, onTime)     // base по priority (P1=25..P4=10), *0.5 если не вовремя,
                                    // отрицательный если isNegative
 penaltyForMissedDaily(task)        // -round(base * 0.6), начисляется раз в сутки при заходе
-levelFromXP(totalXP)                // floor(sqrt(totalXP / 50))
+levelFromXP(totalXP)                // floor(sqrt(max(0, totalXP) / 50)) — минус XP не даёт NaN
+xpForLevel(level)                    // 50 * level² — порог входа в уровень
+levelProgress(totalXP)                // { level, xpIntoLevel, xpPerLevel, xpToNext, percent }
+                                       // для XP-бара в ScoreHeader
 updateStreakOnCompletion(state, today) // стрик по lastActiveDate, честно сбрасывается в 1
 ```
 
@@ -95,7 +98,14 @@ Score за период на графике = сумма `xp` из `logs` за �
 
 Composed chart (Recharts): столбики = кол-во выполненных задач в день, линия = сумма xp
 (score) за день, с переключателем период День/Неделя/Месяц, стрелкой тренда и сравнением
-с прошлым периодом (пунктир). Ещё не реализован — см. `UI_PROMPTS.md` для референсов дизайна.
+с прошлым периодом (пунктир).
+
+На Главной реализован (`components/dashboard/productivity-chart.tsx` + `logic/dashboard.ts`):
+переключатель периода (`buildPeriodChart` — день = 6 корзин по 4 часа по `log.createdAt`,
+неделя = 7 дней, месяц = 4 недели) и стрелка тренда против предыдущего такого же периода.
+Страница подписана на 56 дней логов — этого хватает и на месяц, и на его сравнение.
+Пунктир прошлого периода живёт только на экране Статистики (`components/stats`), который
+пока сидит на моках.
 
 ## Окружение
 

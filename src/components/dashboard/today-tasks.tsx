@@ -43,7 +43,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
       </div>
 
       {tasks.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card px-4 py-6 text-center text-sm text-muted">
+        <div className="glass rounded-xl px-4 py-6 text-center text-sm text-muted">
           Пока нет задач на сегодня
         </div>
       ) : (
@@ -51,7 +51,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
           {tasks.map((task) => (
             <li
               key={task.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5"
+              className="glass flex items-center gap-3 rounded-xl px-4 py-3.5"
             >
               <button
                 type="button"
@@ -59,8 +59,8 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
                 disabled={pendingId === task.id}
                 aria-pressed={task.done}
                 aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-                  task.done ? "border-gold bg-gold/10" : "border-muted/50 hover:border-muted"
+                className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+                  task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
                 }`}
               >
                 {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
@@ -75,7 +75,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
                 <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
                   {task.title}
                 </span>
-                <span className={`w-fit rounded-md px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(task.category)}`}>
+                <span className={`glass-chip w-fit rounded-md px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(task.category)}`}>
                   {task.category}
                 </span>
               </button>

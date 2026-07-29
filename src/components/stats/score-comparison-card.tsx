@@ -23,10 +23,10 @@ export function ScoreComparisonCard({
   const Icon = isPositive ? ArrowUp : ArrowDown;
 
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+    <div className="glass flex items-center justify-between rounded-2xl p-4">
       <div className="flex items-center gap-3">
         <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+          className={`glass-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
             isPositive ? "bg-success/15 text-success" : "bg-danger/15 text-danger"
           }`}
         >

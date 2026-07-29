@@ -13,10 +13,10 @@ export function ProfileHero({ displayName, handle, memberSince, level }: Profile
   return (
     <div className="flex flex-col items-center gap-1.5 pt-2 text-center">
       <div className="relative">
-        <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-gradient-to-b from-gold/20 to-transparent shadow-[0_0_32px_-4px_rgba(212,175,55,0.45)]">
+        <div className="glass-chip flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold/70 bg-gradient-to-b from-gold/25 to-white/5 shadow-[0_0_32px_-4px_rgba(212,175,55,0.45)]">
           <span className="text-4xl font-extrabold text-gold">{initial}</span>
         </div>
-        <span className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-bg bg-gold text-sm font-bold text-bg">
+        <span className="glass-gold absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-bg/80 text-sm font-bold text-bg">
           {level}
         </span>
       </div>

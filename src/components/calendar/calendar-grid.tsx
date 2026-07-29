@@ -12,13 +12,13 @@ interface CalendarGridProps {
 export function CalendarGrid({ grid, selectedDate, onSelectDate }: CalendarGridProps) {
   return (
     <div>
-      <div className="grid grid-cols-7 gap-2.5 pb-2 text-center text-xs font-medium text-muted">
+      <div className="grid grid-cols-7 gap-x-1 pb-2 text-center text-xs font-medium text-muted">
         {WEEKDAYS.map((day) => (
           <div key={day}>{day}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-x-2.5 gap-y-5">
+      <div className="grid grid-cols-7 gap-x-1 gap-y-5">
         {grid.weeks.flat().map((cell) => {
           if (!cell.isCurrentMonth) {
             return <div key={cell.date} className="h-24" />;
@@ -27,19 +27,19 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate }: CalendarGridP
           const isSelected = cell.date === selectedDate;
           const statusClasses =
             cell.status === "completed"
-              ? "border-success/40 bg-success/10"
+              ? "border-success/40 bg-success/12"
               : cell.status === "missed"
-                ? "border-danger/40 bg-danger/10"
+                ? "border-danger/40 bg-danger/12"
                 : cell.status === "future"
-                  ? "border-border/50 bg-card/40"
-                  : "border-border bg-card";
+                  ? "border-white/6 bg-white/3"
+                  : "";
 
           return (
             <button
               key={cell.date}
               type="button"
               onClick={() => onSelectDate(cell.date)}
-              className={`flex h-24 flex-col gap-0.5 overflow-hidden rounded-xl border p-1.5 text-left transition-colors ${statusClasses} ${
+              className={`glass-soft flex h-24 flex-col gap-0.5 overflow-hidden rounded-xl p-1.5 text-left transition-colors ${statusClasses} ${
                 isSelected
                   ? "border-gold ring-2 ring-gold/60"
                   : cell.isToday

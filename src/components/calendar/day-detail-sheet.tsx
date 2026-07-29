@@ -38,10 +38,10 @@ interface DayDetailSheetProps {
 export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask, onAddTaskClick }: DayDetailSheetProps) {
   return (
     <>
-      <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-md" onClick={onClose} />
 
-      <div className="absolute inset-x-0 bottom-0 z-20 max-h-[75%] overflow-y-auto rounded-t-3xl border-t border-border bg-card px-5 pb-6 pt-3 shadow-2xl">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+      <div className="glass-bar absolute inset-x-0 bottom-0 z-20 max-h-[75%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
 
         <div className="mb-4 flex items-start justify-between">
           <div>
@@ -58,7 +58,7 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
             type="button"
             onClick={onClose}
             aria-label="Закрыть"
-            className="rounded-full p-1.5 text-muted transition-colors hover:bg-bg hover:text-fg"
+            className="glass-chip rounded-full p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-fg"
           >
             <X className="h-5 w-5" />
           </button>
@@ -70,15 +70,15 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
             return (
               <li
                 key={task.taskId}
-                className="flex items-center gap-2.5 rounded-xl border border-border bg-bg px-3 py-3"
+                className="glass-soft flex items-center gap-2.5 rounded-xl px-3 py-3"
               >
                 <button
                   type="button"
                   onClick={() => onToggleTask(task.taskId)}
                   aria-pressed={task.done}
                   aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                    task.done ? "border-gold bg-gold/10" : "border-muted/50"
+                  className={`glass-chip flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                    task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5"
                   }`}
                 >
                   {task.done && <Check className="h-3.5 w-3.5 text-gold" strokeWidth={3} />}
@@ -93,12 +93,12 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
                 </span>
 
                 <span
-                  className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${priorityBadgeClass(task.priority)}`}
+                  className={`glass-chip shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${priorityBadgeClass(task.priority)}`}
                 >
                   P{task.priority}
                 </span>
                 <span
-                  className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${categoryBadgeClass(task.category)}`}
+                  className={`glass-chip shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${categoryBadgeClass(task.category)}`}
                 >
                   {task.category}
                 </span>
@@ -111,7 +111,7 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
           })}
 
           {tasks.length === 0 && (
-            <li className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
+            <li className="glass-chip rounded-xl border border-dashed border-white/15 bg-white/3 px-4 py-6 text-center text-sm text-muted">
               Нет задач на этот день
             </li>
           )}
@@ -120,7 +120,7 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
         <button
           type="button"
           onClick={onAddTaskClick}
-          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gold py-3 text-sm font-bold text-bg"
+          className="glass-gold mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-bold text-bg"
         >
           <Plus className="h-4 w-4" />
           Добавить новую задачу

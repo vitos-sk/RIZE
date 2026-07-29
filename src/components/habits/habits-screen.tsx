@@ -104,7 +104,7 @@ function HabitRing({ habit }: { habit: HabitItem }) {
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          className="text-border"
+          className="text-white/15"
           stroke="currentColor"
         />
         <circle
@@ -138,15 +138,13 @@ function HabitCard({ habit, onClick }: { habit: HabitItem; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-3 rounded-2xl border bg-card px-4 py-5 text-center transition-colors ${
-        habit.isBest
-          ? "border-gold shadow-[0_0_24px_-6px_rgba(212,175,55,0.55)]"
-          : "border-border"
+      className={`glass flex flex-col items-center gap-3 rounded-2xl px-4 py-5 text-center transition-colors ${
+        habit.isBest ? "border-gold/70 shadow-[0_0_24px_-6px_rgba(212,175,55,0.55)]" : ""
       }`}
     >
       <span
-        className={`flex h-11 w-11 items-center justify-center rounded-full ${
-          habit.isNegative ? "bg-danger/15 text-danger" : "bg-bg text-fg"
+        className={`glass-chip flex h-11 w-11 items-center justify-center rounded-full ${
+          habit.isNegative ? "bg-danger/15 text-danger" : "bg-white/10 text-fg"
         }`}
       >
         <Icon className="h-5 w-5" />
@@ -166,7 +164,7 @@ function HabitCard({ habit, onClick }: { habit: HabitItem; onClick: () => void }
                   ? "bg-gold"
                   : status === "broken"
                     ? "bg-danger"
-                    : "border border-muted/50"
+                    : "border border-white/25 bg-white/5"
               }`}
             />
           </div>
@@ -174,7 +172,7 @@ function HabitCard({ habit, onClick }: { habit: HabitItem; onClick: () => void }
       </div>
 
       {habit.isBest && (
-        <span className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
+        <span className="glass-chip flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
           <Flame className="h-3.5 w-3.5 fill-current" />
           Самый длинный стрик
         </span>
@@ -189,11 +187,11 @@ export function HabitsScreen() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-4">
       <div className="flex items-center justify-between pt-8">
-        <button type="button" aria-label="Фильтры" className="text-fg">
+        <button type="button" aria-label="Фильтры" className="glass-soft rounded-full p-2 text-fg">
           <ListFilter className="h-5 w-5" />
         </button>
         <h1 className="text-2xl font-bold text-fg">Привычки</h1>
-        <button type="button" aria-label="Ещё" className="text-fg">
+        <button type="button" aria-label="Ещё" className="glass-soft rounded-full p-2 text-fg">
           <MoreVertical className="h-5 w-5" />
         </button>
       </div>
@@ -206,7 +204,7 @@ export function HabitsScreen() {
 
       <button
         type="button"
-        className="flex items-center justify-center gap-2 rounded-full border border-gold px-4 py-3.5 text-sm font-semibold text-gold transition-transform active:scale-[0.98]"
+        className="glass-soft flex items-center justify-center gap-2 rounded-full border-gold/60 bg-gold/10 px-4 py-3.5 text-sm font-semibold text-gold transition-transform active:scale-[0.98]"
       >
         <Plus className="h-4 w-4" strokeWidth={2.5} />
         Добавить привычку

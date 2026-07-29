@@ -121,7 +121,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             type="button"
             onClick={cycleSort}
             aria-label={`Сортировка: ${sortLabel}. Переключить`}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-muted hover:text-fg"
+            className="glass-soft flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:text-fg"
           >
             <ArrowDownUp className="h-3.5 w-3.5" />
             {sortLabel}
@@ -136,8 +136,8 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                  isActive ? "border-gold text-gold" : "border-border text-muted hover:border-muted"
+                className={`glass-soft flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  isActive ? "border-gold/60 bg-gold/15 text-gold" : "text-muted hover:text-fg"
                 }`}
               >
                 {Icon && <Icon className="h-4 w-4" />}
@@ -173,8 +173,8 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                       return (
                         <li
                           key={task.id}
-                          className={`relative flex items-center gap-3 overflow-hidden rounded-xl border bg-card py-3.5 pl-5 pr-4 ${
-                            isOverdue ? "border-danger/50" : "border-border"
+                          className={`glass relative flex items-center gap-3 overflow-hidden rounded-xl py-3.5 pl-5 pr-4 ${
+                            isOverdue ? "border-danger/50" : ""
                           }`}
                         >
                           <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
@@ -185,8 +185,8 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                             disabled={pendingId === task.id}
                             aria-pressed={task.done}
                             aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-                              task.done ? "border-gold bg-gold/10" : "border-muted/50 hover:border-muted"
+                            className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+                              task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
                             }`}
                           >
                             {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
@@ -238,7 +238,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           })}
 
           {groups.length === 0 && (
-            <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted">
+            <div className="glass rounded-2xl p-6 text-center text-sm text-muted">
               {tasks.length === 0 ? "Задач пока нет — добавь первую кнопкой «+»" : "В этом фильтре пока нет задач"}
             </div>
           )}
@@ -249,7 +249,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
         type="button"
         onClick={() => setSheetOpen(true)}
         aria-label="Добавить задачу"
-        className="absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-bg shadow-lg transition-transform active:scale-95"
+        className="glass-gold absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
       >
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </button>

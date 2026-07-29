@@ -61,17 +61,17 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
 
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
 
-      <div className="absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t border-border bg-card px-5 pb-6 pt-3 shadow-2xl">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+      <div className="glass-bar absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
 
         <div className="mb-5 flex items-center justify-between">
           <button
             type="button"
             onClick={onClose}
             aria-label="Закрыть"
-            className="rounded-full p-1.5 text-muted transition-colors hover:bg-bg hover:text-fg"
+            className="glass-chip rounded-full p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-fg"
           >
             <X className="h-5 w-5" />
           </button>
@@ -92,7 +92,7 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Название задачи..."
             autoFocus
-            className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-sm text-fg outline-none placeholder:text-muted focus:border-gold/60"
+            className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
           />
 
           <div className="flex flex-col gap-2">
@@ -104,8 +104,8 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                   type="button"
                   onClick={() => setType(value)}
                   aria-pressed={type === value}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition-colors ${
-                    type === value ? "border-gold bg-gold/10 text-gold" : "border-border text-muted"
+                  className={`glass-soft flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors ${
+                    type === value ? "border-gold/60 bg-gold/15 text-gold" : "text-muted"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -125,7 +125,7 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                 type="date"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-4 py-3 text-sm text-fg outline-none focus:border-gold/60"
+                className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none"
               />
             </div>
           )}
@@ -139,8 +139,8 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                   type="button"
                   onClick={() => setCategory(cat)}
                   aria-pressed={category === cat}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition-colors ${
-                    category === cat ? "border-gold bg-gold/10 text-gold" : "border-border text-muted"
+                  className={`glass-soft flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors ${
+                    category === cat ? "border-gold/60 bg-gold/15 text-gold" : "text-muted"
                   }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${categoryDotColor(cat)}`} />
@@ -151,8 +151,8 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                 type="button"
                 onClick={() => setCategory(CUSTOM_CATEGORY)}
                 aria-pressed={category === CUSTOM_CATEGORY}
-                className={`rounded-full border px-3 py-2 text-xs font-medium transition-colors ${
-                  category === CUSTOM_CATEGORY ? "border-gold bg-gold/10 text-gold" : "border-border text-muted"
+                className={`glass-soft rounded-full px-3 py-2 text-xs font-medium transition-colors ${
+                  category === CUSTOM_CATEGORY ? "border-gold/60 bg-gold/15 text-gold" : "text-muted"
                 }`}
               >
                 Своё
@@ -164,7 +164,7 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                 value={customCategory}
                 onChange={(event) => setCustomCategory(event.target.value)}
                 placeholder="Название категории"
-                className="mt-1 w-full rounded-xl border border-border bg-bg px-4 py-3 text-sm text-fg outline-none placeholder:text-muted focus:border-gold/60"
+                className="glass-field mt-1 w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
               />
             )}
           </div>
@@ -180,10 +180,10 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
                   aria-pressed={priority === value}
                   aria-label={`Приоритет P${value}`}
                   className={`flex h-11 w-11 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${
-                    priority === value ? "border-gold text-fg" : "border-transparent text-muted"
+                    priority === value ? "glass-chip border-gold bg-white/5 text-fg" : "border-transparent text-muted"
                   }`}
                 >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${halo}`}>
+                  <span className={`glass-chip flex h-8 w-8 items-center justify-center rounded-full ${halo}`}>
                     <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
                   </span>
                 </button>
@@ -197,12 +197,12 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
               type="button"
               onClick={() => setIsNegative((prev) => !prev)}
               aria-pressed={isNegative}
-              className="flex items-center justify-between rounded-xl border border-border bg-bg px-4 py-3"
+              className="glass-soft flex items-center justify-between rounded-xl px-4 py-3"
             >
               <span className="text-sm font-medium text-fg">Плохая привычка</span>
               <span
-                className={`relative h-6 w-11 rounded-full transition-colors ${
-                  isNegative ? "bg-danger" : "bg-border"
+                className={`glass-inset relative h-6 w-11 rounded-full transition-colors ${
+                  isNegative ? "bg-danger" : "bg-white/10"
                 }`}
               >
                 <span
@@ -217,7 +217,7 @@ export function AddTaskSheet({ categories, onClose, onSubmit }: AddTaskSheetProp
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex w-full items-center justify-center rounded-xl bg-gold py-3.5 text-sm font-bold text-bg transition-transform active:scale-[0.98] disabled:opacity-50"
+            className="glass-gold flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-bold text-bg transition-transform active:scale-[0.98] disabled:opacity-50"
           >
             Добавить
           </button>
