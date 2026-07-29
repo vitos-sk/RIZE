@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const weekPoints = buildWeekPoints(logs);
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-4">
+    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pt-6 pb-4">
       <StatsRow done={stats.done} streak={stats.streak} avg={stats.avg} bestDay={stats.bestDay} />
       <ProductivityChart data={weekPoints} />
       <TodayTasks uid={user.uid} tasks={tasks} />

@@ -1,4 +1,5 @@
 import {
+  addDoc,
   collection,
   doc,
   onSnapshot,
@@ -43,6 +44,63 @@ export function subscribeTodayTasks(uid: string, cb: (tasks: Task[]) => void) {
       .filter((task) => isRelevantToday(task, todayKey, todayLabel))
       .sort((a, b) => a.priority - b.priority);
     cb(tasks);
+  });
+}
+
+export function subscribeAllTasks(uid: string, cb: (tasks: Task[]) => void) {
+  return onSnapshot(tasksCollection(uid), (snapshot) => {
+    const tasks = snapshot.docs
+      .map((d) => ({ id: d.id, ...(d.data() as Omit<Task, "id">) }))
+      .sort((a, b) => a.priority - b.priority);
+    cb(tasks);
+  });
+}
+
+export async function createTask(
+  uid: string,
+  input: Pick<Task, "title" | "category" | "type" | "priority" | "isNegative" | "schedule" | "dueDate">,
+): Promise<void> {
+  await addDoc(tasksCollection(uid), {
+    ...input,
+    done: false,
+    doneAt: null,
+    createdAt: Date.now(),
+  });
+}
+
+/**
+ * Отмечает выполнение задачи за произвольный день (используется календарём).
+ * В отличие от completeTask/uncompleteTask, не трогает task.done/doneAt и
+ * стрик — они отражают только состояние "на сегодня" (см. Dashboard);
+ * статус дня в календаре считается по наличию лога `${taskId}_${date}`.
+ */
+export async function setTaskCompletionForDate(
+  uid: string,
+  task: Task,
+  dateKey: string,
+  done: boolean,
+): Promise<void> {
+  const logRef = completionLogRef(uid, task.id, dateKey);
+  const uRef = userRef(uid);
+
+  await runTransaction(db, async (tx) => {
+    const [userSnap, logSnap] = await Promise.all([tx.get(uRef), tx.get(logRef)]);
+    if (!userSnap.exists()) throw new Error("Пользователь не найден");
+    const user = userSnap.data() as Omit<FokusUser, "uid">;
+
+    if (done) {
+      if (logSnap.exists()) return;
+      const xp = xpForCompletion(task, true);
+      const newTotalXP = user.totalXP + xp;
+      tx.set(logRef, { taskId: task.id, date: dateKey, type: task.type, xp, onTime: true, createdAt: Date.now() });
+      tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
+    } else {
+      if (!logSnap.exists()) return;
+      const xp = logSnap.data().xp as number;
+      const newTotalXP = user.totalXP - xp;
+      tx.delete(logRef);
+      tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
+    }
   });
 }
 

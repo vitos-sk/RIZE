@@ -35,7 +35,7 @@ app/
   (main)/                 — группа роутов с нижним таб-баром
     layout.tsx            — оборачивает страницы в <TabBar/>
     page.tsx               — Главная / Dashboard  → "/"  (РЕАЛИЗОВАН, см. components/dashboard)
-    tasks/page.tsx          → "/tasks"    (заглушка)
+    tasks/page.tsx          → "/tasks"    (РЕАЛИЗОВАН, см. components/tasks)
     calendar/page.tsx        → "/calendar"  (заглушка — месячная сетка, см. types/calendar.ts)
     habits/page.tsx           → "/habits"   (заглушка)
     stats/page.tsx             → "/stats"    (заглушка)
@@ -109,10 +109,14 @@ Composed chart (Recharts): столбики = кол-во выполненных
 - Firestore Security Rules написаны (`firestore.rules`, `uid == request.auth.uid`), но пока
   не опубликованы в Firebase Console → Firestore → Rules — нужно вставить и нажать Publish.
 - Auth-флоу (`/login`) подключён к Firebase Auth: Email/Password (вход, регистрация, выход,
-  защита `(main)`-роутов через `AuthGate`). Google/Apple/Анонимный вход остаются некликабельными
-  кнопками в макете — не реализованы.
-- Dashboard читает реальные `tasks`/`logs`/`users` из Firestore вместо моков. Пока нет экрана
-  создания задач (Tasks/Habits — свёрстаны, но ещё на локальных моках, не пишут в Firestore),
-  поэтому Dashboard будет пустым, пока задачи не появятся в базе.
+  защита `(main)`-роутов через `AuthGate`). Вход через Google/Apple/Анонимно убран из макета
+  (не нужен для MVP).
+- Dashboard читает реальные `tasks`/`logs`/`users` из Firestore вместо моков. Экран Tasks
+  (`components/tasks/tasks-screen.tsx` + `add-task-sheet.tsx`) тоже на Firestore: список через
+  `subscribeAllTasks`, галочка через `completeTask`/`uncompleteTask`, кнопка "+" создаёт задачу
+  через `createTask` (тип, категория, приоритет, дедлайн, флаг "плохая привычка").
+  Habits — всё ещё на локальных моках.
+- Нет UI для редактирования и удаления задач — создать можно, убрать нельзя (только из
+  Firebase Console).
 - Полный список функций/фич — см. исходный бриф проекта (MVP и v2) в истории чата или
   восстановить по `UI_PROMPTS.md`.

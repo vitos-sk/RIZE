@@ -18,3 +18,17 @@ export function subscribeRecentLogs(uid: string, days: number, cb: (logs: Log[])
     cb(logs);
   });
 }
+
+export function subscribeLogsInRange(uid: string, fromKey: string, toKey: string, cb: (logs: Log[]) => void) {
+  const logsQuery = query(
+    collection(db, "users", uid, "logs"),
+    where("date", ">=", fromKey),
+    where("date", "<=", toKey),
+    orderBy("date"),
+  );
+
+  return onSnapshot(logsQuery, (snapshot) => {
+    const logs = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Log, "id">) }));
+    cb(logs);
+  });
+}

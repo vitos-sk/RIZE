@@ -46,3 +46,14 @@ const PRIORITY_BADGE: Record<Priority, string> = {
 export function priorityBadgeClass(priority: Priority): string {
   return PRIORITY_BADGE[priority];
 }
+
+const PRIORITY_BAR: Record<Priority, string> = {
+  1: "bg-danger",
+  2: "bg-orange-400",
+  3: "bg-gold",
+  4: "bg-muted",
+};
+
+export function priorityBarClass(priority: Priority): string {
+  return PRIORITY_BAR[priority];
+}

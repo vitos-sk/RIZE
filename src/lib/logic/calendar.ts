@@ -13,6 +13,26 @@ function mondayBeforeOrOn(date: Date): Date {
 }
 
 /**
+ * Возвращает ключи всех дней сетки месяца (недели по 7 дней, включая хвосты
+ * соседних месяцев) — используется как для отрисовки, так и для запроса
+ * данных (задачи/логи) под видимый диапазон.
+ */
+export function getMonthGridDates(year: number, month: number): string[] {
+  const firstOfMonth = new Date(Date.UTC(year, month, 1));
+  const firstOfNextMonth = new Date(Date.UTC(year, month + 1, 1));
+  const gridStart = mondayBeforeOrOn(firstOfMonth);
+
+  const daysNeeded = Math.round((firstOfNextMonth.getTime() - gridStart.getTime()) / MS_PER_DAY);
+  const totalCells = Math.ceil(daysNeeded / 7) * 7;
+
+  const dates: string[] = [];
+  for (let i = 0; i < totalCells; i++) {
+    dates.push(toDateKey(new Date(gridStart.getTime() + i * MS_PER_DAY)));
+  }
+  return dates;
+}
+
+/**
  * Строит сетку месяца (недели по 7 дней, включая хвосты соседних месяцев).
  * Кол-во недель — 5 или 6, в зависимости от того, сколько нужно, чтобы вместить весь месяц.
  */
@@ -23,17 +43,11 @@ export function buildMonthGrid(
   tasksByDate: Record<string, CalendarTaskSummary[]> = {},
   todayKey: string = toDateKey(new Date()),
 ): MonthGrid {
-  const firstOfMonth = new Date(Date.UTC(year, month, 1));
-  const firstOfNextMonth = new Date(Date.UTC(year, month + 1, 1));
-  const gridStart = mondayBeforeOrOn(firstOfMonth);
-
-  const daysNeeded = Math.round((firstOfNextMonth.getTime() - gridStart.getTime()) / MS_PER_DAY);
-  const totalCells = Math.ceil(daysNeeded / 7) * 7;
+  const dateKeys = getMonthGridDates(year, month);
 
   const cells: CalendarDayCell[] = [];
-  for (let i = 0; i < totalCells; i++) {
-    const date = new Date(gridStart.getTime() + i * MS_PER_DAY);
-    const dateKey = toDateKey(date);
+  for (const dateKey of dateKeys) {
+    const date = new Date(`${dateKey}T00:00:00.000Z`);
     const dayLogs = logsByDate[dateKey] ?? [];
     const tasks = tasksByDate[dateKey] ?? [];
     const totalXP = dayLogs.reduce((sum, log) => sum + log.xp, 0);
