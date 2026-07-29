@@ -90,7 +90,7 @@ export default function CalendarPage() {
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-28 pt-6">
         <CalendarHeader year={cursor.year} month={cursor.month} onPrev={() => changeMonth(-1)} onNext={() => changeMonth(1)} />
         <div className="mt-4">
           <CalendarGrid grid={grid} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
@@ -101,7 +101,7 @@ export default function CalendarPage() {
         type="button"
         onClick={openAddFlow}
         aria-label="Добавить новую задачу"
-        className="glass-gold absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
+        className="glass-gold absolute bottom-28 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
       >
         <Plus className="h-6 w-6" />
       </button>

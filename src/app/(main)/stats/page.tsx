@@ -35,7 +35,7 @@ export default function StatsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4 px-5 pt-6 pb-4">
+    <div className="mx-auto flex max-w-md flex-col gap-4 px-5 pt-6 pb-28">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-fg">Статистика</h1>
         <button

@@ -114,7 +114,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 overflow-y-auto px-5 pb-24 pt-8">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 overflow-y-auto px-5 pb-28 pt-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-fg">Задачи</h1>
           <button
@@ -249,7 +249,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
         type="button"
         onClick={() => setSheetOpen(true)}
         aria-label="Добавить задачу"
-        className="glass-gold absolute bottom-6 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
+        className="glass-gold absolute bottom-28 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
       >
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </button>

@@ -78,6 +78,18 @@ body {
     box-shadow: 0 -10px 34px -14px rgb(0 0 0 / 0.85), inset 0 1px 0 0 rgb(255 255 255 / 0.1);
   }
 
+  /* Плавающий док таб-бара: висит в воздухе, поэтому плотнее и мутнее шторок. */
+  .glass-dock {
+    background-color: rgb(6 6 9 / 0.94);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01));
+    backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
+    -webkit-backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    box-shadow:
+      0 18px 40px -14px rgb(0 0 0 / 0.95),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.08);
+  }
+
   /* Только блюр и блик — фон берётся из цветной утилиты рядом (бейджи, чипы). */
   .glass-chip {
     backdrop-filter: blur(8px) saturate(140%);
@@ -123,6 +135,7 @@ body {
   .glass,
   .glass-soft,
   .glass-bar,
+  .glass-dock,
   .glass-field {
     background-color: rgb(23 23 28 / 0.95);
   }

@@ -46,8 +46,9 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pt-6 pb-4">
+    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pt-6 pb-28">
       <ScoreHeader totalXP={fokusUser?.totalXP ?? 0} streak={fokusUser?.currentStreak ?? 0} />
+      <TodayTasks uid={user.uid} tasks={tasks} />
       <StatsRow done={stats.done} streak={stats.streak} avg={stats.avg} bestDay={stats.bestDay} />
       <ProductivityChart
         data={chart.points}
@@ -56,7 +57,6 @@ export default function DashboardPage() {
         trendPercent={chart.trendPercent}
         comparisonLabel={chart.comparisonLabel}
       />
-      <TodayTasks uid={user.uid} tasks={tasks} />
     </div>
   );
 }

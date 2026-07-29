@@ -38,9 +38,9 @@ interface DayDetailSheetProps {
 export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask, onAddTaskClick }: DayDetailSheetProps) {
   return (
     <>
-      <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
 
-      <div className="glass-bar absolute inset-x-0 bottom-0 z-20 max-h-[75%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
+      <div className="glass-bar absolute inset-x-0 bottom-0 z-40 max-h-[75%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
 
         <div className="mb-4 flex items-start justify-between">

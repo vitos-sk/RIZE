@@ -9,7 +9,7 @@ import { signOutUser } from "@/lib/firebase/auth";
 
 export default function ProfilePage() {
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-4">
+    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-28">
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-fg">Профиль</h1>
         <button
