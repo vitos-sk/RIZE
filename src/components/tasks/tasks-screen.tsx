@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDownUp, Check, ChevronDown, Clock, Plus, Repeat, Skull, Zap } from "lucide-react";
+import { ArrowDownUp, Check, ChevronDown, Clock, Plus, Repeat, Skull, Star, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 import { categoryDotColor, priorityBarClass } from "@/components/calendar/category-style";
-import { completeTask, createTask, uncompleteTask } from "@/lib/firebase/tasks";
+import { completeTask, createTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
+import { fromDateKey } from "@/lib/logic/date";
 import { xpForCompletion } from "@/lib/logic/xp";
-import { AddTaskSheet, type NewTaskInput } from "./add-task-sheet";
+import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
 import type { Task, TaskType } from "@/types/task";
 
 type Filter = "all" | TaskType;
@@ -61,7 +62,9 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   const [sort, setSort] = useState<Sort>("priority");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingPriorityId, setPendingPriorityId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(false);
 
   async function toggleDone(task: Task) {
     setPendingId(task.id);
@@ -75,6 +78,17 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       console.error(error);
     } finally {
       setPendingId(null);
+    }
+  }
+
+  async function toggleFavorite(task: Task) {
+    setPendingPriorityId(task.id);
+    try {
+      await setTaskPriority(uid, task.id, task.priority === 1 ? 3 : 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPendingPriorityId(null);
     }
   }
 
@@ -97,6 +111,11 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
   }, [tasks]);
 
+  const initialCursor = useMemo(() => {
+    const date = fromDateKey(todayKey);
+    return { year: date.getUTCFullYear(), month: date.getUTCMonth() };
+  }, [todayKey]);
+
   const groups = useMemo(() => {
     const filtered = filter === "all" ? tasks : tasks.filter((task) => task.type === filter);
     const byCategory = new Map<string, Task[]>();
@@ -109,6 +128,92 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       .sort(([a], [b]) => a.localeCompare(b, "ru"))
       .map(([category, list]) => [category, [...list].sort((a, b) => compareTasks(sort, a, b))] as const);
   }, [tasks, filter, sort]);
+
+  const doneTasks = useMemo(() => {
+    const filtered = filter === "all" ? tasks : tasks.filter((task) => task.type === filter);
+    return filtered.filter((task) => task.done).sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0));
+  }, [tasks, filter]);
+
+  function renderTaskRow(task: Task) {
+    const TypeIcon = TYPE_META[task.type].icon;
+    const isOverdue = !task.done && task.type === "once" && !!task.dueDate && task.dueDate < todayKey;
+    const xp = xpForCompletion(task, !isOverdue);
+    return (
+      <li
+        key={task.id}
+        className={`glass relative flex items-center gap-3 overflow-hidden rounded-xl py-3.5 pl-5 pr-4 ${
+          isOverdue ? "border-danger/50" : !task.done && task.priority === 1 ? "border-gold/50" : ""
+        }`}
+      >
+        <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
+
+        <button
+          type="button"
+          onClick={() => toggleDone(task)}
+          disabled={pendingId === task.id}
+          aria-pressed={task.done}
+          aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
+          className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+            task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
+          }`}
+        >
+          {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toggleDone(task)}
+          disabled={pendingId === task.id}
+          className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
+        >
+          <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
+            {task.title}
+          </span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {task.isNegative ? (
+              <span className="flex items-center gap-1 font-medium text-danger">
+                <Skull className="h-3.5 w-3.5" />
+                Плохая привычка
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-muted">
+                <TypeIcon className="h-3.5 w-3.5" />
+                {TYPE_META[task.type].label}
+              </span>
+            )}
+            {task.dueDate && (
+              <span className={isOverdue ? "font-medium text-danger" : "text-muted"}>
+                {isOverdue ? `Просрочено · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
+              </span>
+            )}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toggleFavorite(task)}
+          disabled={pendingPriorityId === task.id}
+          aria-pressed={task.priority === 1}
+          aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
+          className="shrink-0 disabled:opacity-50"
+        >
+          <Star
+            className={`h-5 w-5 transition-colors ${
+              task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+            }`}
+          />
+        </button>
+
+        <span
+          className={`shrink-0 text-xs font-bold ${xp < 0 ? "text-danger" : "text-gold"} ${
+            task.done ? "opacity-60" : ""
+          }`}
+        >
+          {xp > 0 ? `+${xp}` : xp} XP
+        </span>
+      </li>
+    );
+  }
 
   const sortLabel = SORTS.find((s) => s.value === sort)!.label;
 
@@ -165,73 +270,15 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                 </button>
 
                 {!isCollapsed && (
-                  <ul className="flex flex-col gap-3">
-                    {categoryTasks.map((task) => {
-                      const TypeIcon = TYPE_META[task.type].icon;
-                      const isOverdue = !task.done && task.type === "once" && !!task.dueDate && task.dueDate < todayKey;
-                      const xp = xpForCompletion(task, !isOverdue);
-                      return (
-                        <li
-                          key={task.id}
-                          className={`glass relative flex items-center gap-3 overflow-hidden rounded-xl py-3.5 pl-5 pr-4 ${
-                            isOverdue ? "border-danger/50" : ""
-                          }`}
-                        >
-                          <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
-
-                          <button
-                            type="button"
-                            onClick={() => toggleDone(task)}
-                            disabled={pendingId === task.id}
-                            aria-pressed={task.done}
-                            aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-                            className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-                              task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
-                            }`}
-                          >
-                            {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => toggleDone(task)}
-                            disabled={pendingId === task.id}
-                            className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
-                          >
-                            <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
-                              {task.title}
-                            </span>
-                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                              {task.isNegative ? (
-                                <span className="flex items-center gap-1 font-medium text-danger">
-                                  <Skull className="h-3.5 w-3.5" />
-                                  Плохая привычка
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-1 text-muted">
-                                  <TypeIcon className="h-3.5 w-3.5" />
-                                  {TYPE_META[task.type].label}
-                                </span>
-                              )}
-                              {task.dueDate && (
-                                <span className={isOverdue ? "font-medium text-danger" : "text-muted"}>
-                                  {isOverdue ? `Просрочено · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
-                                </span>
-                              )}
-                            </span>
-                          </button>
-
-                          <span
-                            className={`shrink-0 text-xs font-bold ${xp < 0 ? "text-danger" : "text-gold"} ${
-                              task.done ? "opacity-60" : ""
-                            }`}
-                          >
-                            {xp > 0 ? `+${xp}` : xp} XP
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  categoryTasks.some((task) => !task.done) ? (
+                    <ul className="flex flex-col gap-3">
+                      {categoryTasks.filter((task) => !task.done).map((task) => renderTaskRow(task))}
+                    </ul>
+                  ) : (
+                    <div className="glass-soft rounded-xl px-4 py-3 text-center text-xs text-muted">
+                      Все задачи категории выполнены
+                    </div>
+                  )
                 )}
               </div>
             );
@@ -240,6 +287,23 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           {groups.length === 0 && (
             <div className="glass rounded-2xl p-6 text-center text-sm text-muted">
               {tasks.length === 0 ? "Задач пока нет — добавь первую кнопкой «+»" : "В этом фильтре пока нет задач"}
+            </div>
+          )}
+
+          {doneTasks.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setDoneOpen((prev) => !prev)}
+                className="glass-soft flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:text-fg"
+              >
+                <span>Выполнено {doneTasks.length}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? "" : "-rotate-90"}`} />
+              </button>
+
+              {doneOpen && (
+                <ul className="flex flex-col gap-3">{doneTasks.map((task) => renderTaskRow(task))}</ul>
+              )}
             </div>
           )}
         </div>
@@ -255,7 +319,13 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       </button>
 
       {sheetOpen && (
-        <AddTaskSheet categories={categories} onClose={() => setSheetOpen(false)} onSubmit={handleCreate} />
+        <TaskComposeFlow
+          categories={categories}
+          todayKey={todayKey}
+          initialCursor={initialCursor}
+          onClose={() => setSheetOpen(false)}
+          onSubmit={handleCreate}
+        />
       )}
     </div>
   );

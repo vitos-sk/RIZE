@@ -2,18 +2,27 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
   onSnapshot,
+  query,
   runTransaction,
+  updateDoc,
+  where,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { xpForCompletion, levelFromXP } from "@/lib/logic/xp";
 import { updateStreakOnCompletion } from "@/lib/logic/streak";
 import { toDateKey, weekdayLabel } from "@/lib/logic/date";
-import type { Task } from "@/types/task";
+import type { Priority, Task } from "@/types/task";
 import type { FokusUser } from "@/types/user";
 
 function tasksCollection(uid: string) {
   return collection(db, "users", uid, "tasks");
+}
+
+function logsCollection(uid: string) {
+  return collection(db, "users", uid, "logs");
 }
 
 function taskRef(uid: string, taskId: string) {
@@ -56,6 +65,10 @@ export function subscribeAllTasks(uid: string, cb: (tasks: Task[]) => void) {
   });
 }
 
+export async function setTaskPriority(uid: string, taskId: string, priority: Priority): Promise<void> {
+  await updateDoc(taskRef(uid, taskId), { priority });
+}
+
 export async function createTask(
   uid: string,
   input: Pick<Task, "title" | "category" | "type" | "priority" | "isNegative" | "schedule" | "dueDate">,
@@ -65,6 +78,39 @@ export async function createTask(
     done: false,
     doneAt: null,
     createdAt: Date.now(),
+  });
+}
+
+/**
+ * Полностью удаляет задачу: сам документ, все её логи и XP, начисленный за них.
+ * Логи чистим пачками (в одну транзакцию/батч Firestore влезает 500 операций),
+ * а списание XP и удаление самой задачи делаем транзакцией, чтобы totalXP/level
+ * не разъехались при гонке с отметкой другой задачи.
+ * Стрик не пересчитываем: он отражает факт активности в день, а не конкретную задачу.
+ */
+export async function deleteTask(uid: string, taskId: string): Promise<void> {
+  const logsSnap = await getDocs(query(logsCollection(uid), where("taskId", "==", taskId)));
+  const logIds = logsSnap.docs.map((d) => d.id);
+  const xpToRevoke = logsSnap.docs.reduce((sum, d) => sum + ((d.data().xp as number) ?? 0), 0);
+
+  const CHUNK = 400;
+  for (let i = 0; i < logIds.length; i += CHUNK) {
+    const batch = writeBatch(db);
+    for (const logId of logIds.slice(i, i + CHUNK)) {
+      batch.delete(doc(db, "users", uid, "logs", logId));
+    }
+    await batch.commit();
+  }
+
+  await runTransaction(db, async (tx) => {
+    const uRef = userRef(uid);
+    const userSnap = await tx.get(uRef);
+    if (!userSnap.exists()) throw new Error("Пользователь не найден");
+    const user = userSnap.data() as Omit<FokusUser, "uid">;
+    const newTotalXP = user.totalXP - xpToRevoke;
+
+    tx.delete(taskRef(uid, taskId));
+    tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
   });
 }
 

@@ -47,6 +47,11 @@ export function formatDayMonth(dateKey: string): string {
   return `${date.getUTCDate()} ${MONTHS_GENITIVE[date.getUTCMonth()]}`;
 }
 
+/** Для «Участник с …»: месяц в родительном падеже — 'марта 2025'. */
+export function formatMonthYear(date: Date): string {
+  return `${MONTHS_GENITIVE[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
 /** Месяц не повторяем, если обе даты внутри него: '23 – 29 июля'. */
 export function formatDateRange(fromKey: string, toKey: string): string {
   const from = fromDateKey(fromKey);

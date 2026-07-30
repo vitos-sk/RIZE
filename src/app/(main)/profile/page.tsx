@@ -1,53 +1,46 @@
 "use client";
 
-import { Pencil } from "lucide-react";
-import { ProfileHero } from "@/components/profile/profile-hero";
-import { LevelCard } from "@/components/profile/level-card";
-import { StatsGrid } from "@/components/profile/stats-grid";
-import { AchievementsRow, SAMPLE_ACHIEVEMENTS } from "@/components/profile/achievements-row";
-import { signOutUser } from "@/lib/firebase/auth";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/providers/auth-provider";
+import { subscribeAllLogs } from "@/lib/firebase/logs";
+import { subscribeAllTasks } from "@/lib/firebase/tasks";
+import { subscribeUser } from "@/lib/firebase/users";
+import { ProfileScreen } from "@/components/profile/profile-screen";
+import type { FokusUser } from "@/types/user";
+import type { Task } from "@/types/task";
+import type { Log } from "@/types/log";
 
 export default function ProfilePage() {
+  const { user } = useAuth();
+  const [fokusUser, setFokusUser] = useState<FokusUser | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  // Профиль показывает «за всё время», поэтому логи берём без окна.
+  const [logs, setLogs] = useState<Log[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubUser = subscribeUser(user.uid, setFokusUser);
+    const unsubTasks = subscribeAllTasks(user.uid, setTasks);
+    const unsubLogs = subscribeAllLogs(user.uid, setLogs);
+    return () => {
+      unsubUser();
+      unsubTasks();
+      unsubLogs();
+    };
+  }, [user]);
+
+  if (!user) return null;
+
+  const email = user.email ?? "—";
+
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-28">
-      <div className="flex items-center justify-between pt-4">
-        <h1 className="text-2xl font-bold text-fg">Профиль</h1>
-        <button
-          type="button"
-          className="glass-soft flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-fg"
-        >
-          <Pencil className="h-4 w-4" />
-          Изменить
-        </button>
-      </div>
-
-      <ProfileHero
-        displayName="Виталий"
-        handle="@vitalii.rize"
-        memberSince="март 2025"
-        level={7}
-      />
-
-      <LevelCard level={7} nextLevel={8} xp={3420} xpToNextLevel={1580} />
-
-      <StatsGrid
-        totalXP={3420}
-        tasksDone={247}
-        bestStreak={21}
-        longestFocus="4h"
-        goldCoins={890}
-        habitsKeptPct={89}
-      />
-
-      <AchievementsRow earnedCount={12} achievements={SAMPLE_ACHIEVEMENTS} />
-
-      <button
-        type="button"
-        onClick={() => signOutUser()}
-        className="glass rounded-2xl py-3.5 text-center text-sm font-medium text-danger"
-      >
-        Выйти
-      </button>
-    </div>
+    <ProfileScreen
+      uid={user.uid}
+      email={email}
+      fallbackName={user.displayName?.trim() || email.split("@")[0] || "Игрок"}
+      user={fokusUser}
+      tasks={tasks}
+      logs={logs}
+    />
   );
 }

@@ -1,7 +1,7 @@
 import type { Log } from "@/types/log";
 import type { Task } from "@/types/task";
 import type { ChartPoint } from "@/components/stats/tasks-score-chart";
-import { logsBetween, shiftKey, sumXP, type DashboardPeriod } from "@/lib/logic/dashboard";
+import { logsBetween, shiftKey, sumXP, trendPercent, type DashboardPeriod } from "@/lib/logic/period";
 import {
   formatDateRange,
   formatDayMonth,
@@ -130,7 +130,7 @@ function pickHighlight(buckets: Bucket[], mode: "best" | "worst"): DayHighlight 
 }
 
 /** Сколько раз задача должна была быть выполнена внутри окна (с учётом даты создания). */
-function plannedOccurrences(task: Task, fromKey: string, toKey: string): number {
+export function plannedOccurrences(task: Task, fromKey: string, toKey: string): number {
   const createdKey = toDateKey(new Date(task.createdAt));
   const startKey = createdKey > fromKey ? createdKey : fromKey;
   if (startKey > toKey) return 0;
@@ -179,11 +179,6 @@ function buildCategoryProgress(
       return { category, done: doneCount, total: Math.max(planned.get(category) ?? 0, doneCount) };
     })
     .sort((a, b) => b.total - a.total || a.category.localeCompare(b.category, "ru"));
-}
-
-function trendPercent(current: number, previous: number): number {
-  if (previous === 0) return current === 0 ? 0 : 100;
-  return Math.round(((current - previous) / Math.abs(previous)) * 100);
 }
 
 function currentBucketLabel(period: DashboardPeriod, now: Date, buckets: Bucket[]): string {

@@ -1,58 +1,29 @@
 import type { Priority } from "@/types/task";
 
-const CATEGORY_DOT: Record<string, string> = {
-  Спорт: "bg-success",
-  Работа: "bg-blue-400",
-  Здоровье: "bg-purple-400",
-  Разум: "bg-purple-400",
-};
+/**
+ * Палитра приложения однотонная: единственный акцент — золото.
+ * Категории цветом не различаются вообще (раньше был случайный blue/purple/pink/teal
+ * по хэшу названия — от этого списки выглядели пёстрыми). Приоритет читается
+ * градацией непрозрачности белого: P1 яркий, P4 еле заметный.
+ */
 
-const CATEGORY_BADGE: Record<string, string> = {
-  Спорт: "bg-success/15 text-success",
-  Работа: "bg-blue-500/15 text-blue-400",
-  Здоровье: "bg-purple-500/15 text-purple-400",
-  Разум: "bg-purple-500/15 text-purple-400",
-};
-
-const CATEGORY_TEXT: Record<string, string> = {
-  Спорт: "text-success",
-  Работа: "text-blue-400",
-  Здоровье: "text-purple-400",
-  Разум: "text-purple-400",
-};
-
-const FALLBACK_DOTS = ["bg-blue-400", "bg-purple-400", "bg-pink-400", "bg-teal-400"];
-const FALLBACK_TEXTS = ["text-blue-400", "text-purple-400", "text-pink-400", "text-teal-400"];
-const FALLBACK_BADGES = [
-  "bg-blue-500/15 text-blue-400",
-  "bg-purple-500/15 text-purple-400",
-  "bg-pink-500/15 text-pink-400",
-  "bg-teal-500/15 text-teal-400",
-];
-
-function hashCode(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) hash = (hash << 5) - hash + value.charCodeAt(i);
-  return Math.abs(hash);
+export function categoryDotColor(_category: string): string {
+  return "bg-white/40";
 }
 
-export function categoryDotColor(category: string): string {
-  return CATEGORY_DOT[category] ?? FALLBACK_DOTS[hashCode(category) % FALLBACK_DOTS.length];
+export function categoryTextColor(_category: string): string {
+  return "text-muted";
 }
 
-export function categoryTextColor(category: string): string {
-  return CATEGORY_TEXT[category] ?? FALLBACK_TEXTS[hashCode(category) % FALLBACK_TEXTS.length];
-}
-
-export function categoryBadgeClass(category: string): string {
-  return CATEGORY_BADGE[category] ?? FALLBACK_BADGES[hashCode(category) % FALLBACK_BADGES.length];
+export function categoryBadgeClass(_category: string): string {
+  return "bg-white/8 text-muted";
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  1: "bg-danger/15 text-danger",
-  2: "bg-orange-500/15 text-orange-400",
-  3: "bg-gold/15 text-gold",
-  4: "bg-muted/15 text-muted",
+  1: "bg-white/14 text-fg",
+  2: "bg-white/10 text-fg/75",
+  3: "bg-white/7 text-muted",
+  4: "bg-white/5 text-muted/70",
 };
 
 export function priorityBadgeClass(priority: Priority): string {
@@ -60,10 +31,10 @@ export function priorityBadgeClass(priority: Priority): string {
 }
 
 const PRIORITY_BAR: Record<Priority, string> = {
-  1: "bg-danger",
-  2: "bg-orange-400",
-  3: "bg-gold",
-  4: "bg-muted",
+  1: "bg-white/70",
+  2: "bg-white/45",
+  3: "bg-white/28",
+  4: "bg-white/15",
 };
 
 export function priorityBarClass(priority: Priority): string {

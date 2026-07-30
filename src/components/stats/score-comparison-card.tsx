@@ -27,13 +27,13 @@ export function ScoreComparisonCard({
       <div className="flex items-center gap-3">
         <span
           className={`glass-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-            isPositive ? "bg-success/15 text-success" : "bg-danger/15 text-danger"
+            isPositive ? "bg-gold/12 text-gold" : "bg-danger/15 text-danger"
           }`}
         >
           <Icon className="h-4 w-4" strokeWidth={2.5} />
         </span>
         <div>
-          <p className={`text-sm font-semibold ${isPositive ? "text-success" : "text-danger"}`}>
+          <p className={`text-sm font-semibold ${isPositive ? "text-gold" : "text-danger"}`}>
             {isPositive ? "+" : ""}
             {changePercent}% за {WINDOW_LABEL_PHRASE[windowLabel]}
           </p>

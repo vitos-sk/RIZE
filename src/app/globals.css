@@ -1,13 +1,16 @@
 @import "tailwindcss";
 
+/* Палитра однотонная: тёплый графит + единственный акцент (золото).
+   Цветных категорий/приоритетов нет — иерархия строится прозрачностью белого. */
 @theme {
-  --color-bg: #0b0b0f;
-  --color-card: #17171c;
-  --color-border: #26262e;
-  --color-fg: #f5f5f7;
-  --color-muted: #8b8b93;
+  --color-bg: #0c0b0a;
+  --color-card: #171513;
+  --color-border: #272421;
+  --color-fg: #f4f2ef;
+  --color-muted: #918b83;
   --color-gold: #d4af37;
-  --color-success: #3ecf8e;
+  /* Единственный цвет кроме золота: красный на отрицательном XP, срыве и удалении.
+     Зелёного нет намеренно — «хорошо» показывается золотом. */
   --color-danger: #e5484d;
 
   --font-sans: var(--font-geist-sans);
@@ -18,7 +21,7 @@
 :root {
   --glass-tint-top: rgb(255 255 255 / 0.09);
   --glass-tint-bottom: rgb(255 255 255 / 0.025);
-  --glass-base: rgb(23 23 28 / 0.42);
+  --glass-base: rgb(23 21 19 / 0.42);
   --glass-edge: rgb(255 255 255 / 0.12);
   --glass-highlight: rgb(255 255 255 / 0.1);
   --glass-shadow: 0 12px 34px -16px rgb(0 0 0 / 0.8);
@@ -40,13 +43,12 @@ body {
 }
 
 @layer components {
-  /* Фоновое свечение под стеклом — без него блюр не за что зацепиться. */
+  /* Фоновое свечение под стеклом — без него блюр не за что зацепиться.
+     Одно золотое пятно сверху + нейтральное снизу: цвета в фоне быть не должно. */
   .app-aurora {
     background-image:
-      radial-gradient(38rem 26rem at 12% -6%, rgb(212 175 55 / 0.16), transparent 62%),
-      radial-gradient(32rem 24rem at 96% 14%, rgb(129 140 248 / 0.14), transparent 64%),
-      radial-gradient(30rem 26rem at 50% 106%, rgb(62 207 142 / 0.1), transparent 62%),
-      radial-gradient(26rem 22rem at 88% 78%, rgb(229 72 77 / 0.08), transparent 66%);
+      radial-gradient(40rem 28rem at 18% -8%, rgb(212 175 55 / 0.13), transparent 64%),
+      radial-gradient(34rem 26rem at 82% 104%, rgb(255 255 255 / 0.045), transparent 66%);
   }
 
   /* Основная стеклянная карточка. */
@@ -70,7 +72,7 @@ body {
 
   /* Навбар и шторки — блюр сильнее: под ними едет контент. */
   .glass-bar {
-    background-color: rgb(11 11 15 / 0.62);
+    background-color: rgb(12 11 10 / 0.62);
     background-image: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02));
     backdrop-filter: blur(26px) saturate(165%);
     -webkit-backdrop-filter: blur(26px) saturate(165%);
@@ -80,7 +82,7 @@ body {
 
   /* Плавающий док таб-бара: висит в воздухе, поэтому плотнее и мутнее шторок. */
   .glass-dock {
-    background-color: rgb(6 6 9 / 0.94);
+    background-color: rgb(7 6 6 / 0.94);
     background-image: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01));
     backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
     -webkit-backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
@@ -135,8 +137,12 @@ body {
   .glass,
   .glass-soft,
   .glass-bar,
-  .glass-dock,
   .glass-field {
-    background-color: rgb(23 23 28 / 0.95);
+    background-color: rgb(23 21 19 / 0.95);
+  }
+
+  /* Док и без блюра остаётся самой тёмной поверхностью. */
+  .glass-dock {
+    background-color: rgb(7 6 6 / 0.98);
   }
 }

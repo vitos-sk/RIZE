@@ -13,7 +13,7 @@ import type { Log } from "@/types/log";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { DayDetailSheet } from "@/components/calendar/day-detail-sheet";
-import { AddTaskFlow } from "@/components/calendar/add-task-flow";
+import { TaskComposeFlow, type NewTaskInput } from "@/components/tasks/task-compose-flow";
 
 export default function CalendarPage() {
   const { user } = useAuth();
@@ -23,6 +23,7 @@ export default function CalendarPage() {
   const [cursor, setCursor] = useState({ year: todayDate.getUTCFullYear(), month: todayDate.getUTCMonth() });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [addFlowOpen, setAddFlowOpen] = useState(false);
+  const [composeInitialDate, setComposeInitialDate] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [logs, setLogs] = useState<Log[]>([]);
 
@@ -41,6 +42,11 @@ export default function CalendarPage() {
   const { tasksByDate, logsByDate } = useMemo(
     () => buildCalendarData(tasks, logs, dateKeys),
     [tasks, logs, dateKeys],
+  );
+
+  const categories = useMemo(
+    () => Array.from(new Set(tasks.map((task) => task.category))).sort((a, b) => a.localeCompare(b, "ru")),
+    [tasks],
   );
 
   const grid = useMemo(
@@ -63,20 +69,14 @@ export default function CalendarPage() {
     setTaskCompletionForDate(user.uid, task, dateKey, nextDone).catch(console.error);
   }
 
-  function addTask(dateKey: string, category: string | null, title: string) {
+  function handleCreateTask(input: NewTaskInput) {
     if (!user) return;
-    createTask(user.uid, {
-      title,
-      category: category ?? "Без категории",
-      type: "once",
-      priority: 4,
-      isNegative: false,
-      schedule: [],
-      dueDate: dateKey,
-    }).catch(console.error);
+    createTask(user.uid, input).catch(console.error);
+    setAddFlowOpen(false);
   }
 
-  function openAddFlow() {
+  function openAddFlow(initialDate: string | null = null) {
+    setComposeInitialDate(initialDate);
     setSelectedDate(null);
     setAddFlowOpen(true);
   }
@@ -99,7 +99,7 @@ export default function CalendarPage() {
 
       <button
         type="button"
-        onClick={openAddFlow}
+        onClick={() => openAddFlow()}
         aria-label="Добавить новую задачу"
         className="glass-gold absolute bottom-28 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
       >
@@ -116,21 +116,20 @@ export default function CalendarPage() {
             const summary = selectedTasks.find((task) => task.taskId === taskId);
             if (summary) toggleTask(selectedDate, taskId, !summary.done);
           }}
-          onAddTaskClick={openAddFlow}
+          onAddTaskClick={() => openAddFlow(selectedDate)}
         />
       )}
 
       {addFlowOpen && (
-        <AddTaskFlow
+        <TaskComposeFlow
+          categories={categories}
           todayKey={todayKey}
           initialCursor={cursor}
+          initialDate={composeInitialDate}
           tasksByDate={tasksByDate}
           logsByDate={logsByDate}
           onClose={() => setAddFlowOpen(false)}
-          onSubmit={(dateKey, category, title) => {
-            addTask(dateKey, category, title);
-            setAddFlowOpen(false);
-          }}
+          onSubmit={handleCreateTask}
         />
       )}
     </div>

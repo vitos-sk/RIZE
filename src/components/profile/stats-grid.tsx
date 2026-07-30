@@ -1,57 +1,56 @@
-import { Brain, CheckCircle2, Coins, Flame, Repeat, Star } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Coins, Flame, Repeat, Skull, Star, TrendingUp, Trophy } from "lucide-react";
 import type { ComponentType } from "react";
+import type { ProfileSummary } from "@/lib/logic/profile";
 
 interface StatEntry {
   icon: ComponentType<{ className?: string }>;
   value: string;
   label: string;
-  color: string;
+  /** Золотом подсвечены только «валютные» метрики — XP и стрики. Остальное нейтральное. */
+  accent?: boolean;
 }
 
 interface StatsGridProps {
-  totalXP: number;
-  tasksDone: number;
-  bestStreak: number;
-  longestFocus: string;
-  goldCoins: number;
-  habitsKeptPct: number;
+  summary: ProfileSummary;
 }
 
-export function StatsGrid({
-  totalXP,
-  tasksDone,
-  bestStreak,
-  longestFocus,
-  goldCoins,
-  habitsKeptPct,
-}: StatsGridProps) {
+function ru(value: number): string {
+  return value.toLocaleString("ru-RU");
+}
+
+export function StatsGrid({ summary }: StatsGridProps) {
   const stats: StatEntry[] = [
-    { icon: Star, value: totalXP.toLocaleString(), label: "Всего XP", color: "gold" },
-    { icon: CheckCircle2, value: String(tasksDone), label: "Задач выполнено", color: "success" },
-    { icon: Flame, value: String(bestStreak), label: "Лучший стрик", color: "orange" },
-    { icon: Brain, value: longestFocus, label: "Макс. фокус", color: "blue" },
-    { icon: Coins, value: goldCoins.toLocaleString(), label: "Золотые монеты", color: "muted" },
-    { icon: Repeat, value: `${habitsKeptPct}%`, label: "Привычки соблюдены", color: "purple" },
+    { icon: Star, value: ru(summary.totalXP), label: "Всего XP", accent: true },
+    { icon: CheckCircle2, value: ru(summary.tasksDone), label: "Задач выполнено" },
+    { icon: Flame, value: ru(summary.currentStreak), label: "Текущий стрик", accent: true },
+    { icon: Trophy, value: ru(summary.longestStreak), label: "Лучший стрик" },
+    { icon: CalendarCheck, value: ru(summary.activeDays), label: "Активных дней" },
+    { icon: TrendingUp, value: ru(summary.avgXPPerDay), label: "XP в день" },
+    { icon: Repeat, value: `${summary.habitsKeptPercent}%`, label: "Привычки соблюдены" },
+    summary.breakdowns > 0
+      ? { icon: Skull, value: ru(summary.breakdowns), label: "Срывов" }
+      : { icon: Coins, value: ru(summary.gold), label: "Золотые монеты", accent: true },
   ];
 
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-lg font-bold text-fg">Твоя статистика</h2>
-        <span className="text-sm font-medium text-gold">За всё время</span>
+        <span className="text-sm font-medium text-muted">За всё время</span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {stats.map(({ icon: Icon, value, label, color }) => (
-          <div
-            key={label}
-            className="glass flex items-center gap-3 rounded-2xl p-4"
-          >
-            <div className={`glass-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${ICON_BG[color]}`}>
-              <Icon className={`h-5 w-5 ${ICON_FG[color]}`} />
+        {stats.map(({ icon: Icon, value, label, accent }) => (
+          <div key={label} className="glass flex items-center gap-3 rounded-2xl p-4">
+            <div
+              className={`glass-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                accent ? "bg-gold/12" : "bg-white/8"
+              }`}
+            >
+              <Icon className={`h-5 w-5 ${accent ? "text-gold" : "text-muted"}`} />
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-fg">{value}</span>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-lg font-bold text-fg">{value}</span>
               <span className="text-xs text-muted">{label}</span>
             </div>
           </div>
@@ -60,21 +59,3 @@ export function StatsGrid({
     </div>
   );
 }
-
-const ICON_BG: Record<string, string> = {
-  gold: "bg-gold/15",
-  success: "bg-success/15",
-  orange: "bg-orange-500/15",
-  blue: "bg-blue-500/15",
-  muted: "bg-white/10",
-  purple: "bg-purple-500/15",
-};
-
-const ICON_FG: Record<string, string> = {
-  gold: "text-gold",
-  success: "text-success",
-  orange: "text-orange-500",
-  blue: "text-blue-400",
-  muted: "text-muted",
-  purple: "text-purple-400",
-};

@@ -19,6 +19,16 @@ export function subscribeRecentLogs(uid: string, days: number, cb: (logs: Log[])
   });
 }
 
+/** Профилю нужна вся история: «за всё время» нельзя обрезать окном. */
+export function subscribeAllLogs(uid: string, cb: (logs: Log[]) => void) {
+  const logsQuery = query(collection(db, "users", uid, "logs"), orderBy("date"));
+
+  return onSnapshot(logsQuery, (snapshot) => {
+    const logs = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Log, "id">) }));
+    cb(logs);
+  });
+}
+
 export function subscribeLogsInRange(uid: string, fromKey: string, toKey: string, cb: (logs: Log[]) => void) {
   const logsQuery = query(
     collection(db, "users", uid, "logs"),

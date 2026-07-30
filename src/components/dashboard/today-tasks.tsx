@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Star } from "lucide-react";
+import { Check, ChevronDown, Star } from "lucide-react";
 import { categoryBadgeClass } from "@/components/calendar/category-style";
-import { completeTask, uncompleteTask } from "@/lib/firebase/tasks";
+import { completeTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import type { Task } from "@/types/task";
 
 interface TodayTasksProps {
@@ -13,8 +13,9 @@ interface TodayTasksProps {
 }
 
 export function TodayTasks({ uid, tasks }: TodayTasksProps) {
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingPriorityId, setPendingPriorityId] = useState<string | null>(null);
+  const [doneOpen, setDoneOpen] = useState(false);
 
   async function toggleDone(task: Task) {
     setPendingId(task.id);
@@ -29,8 +30,71 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
     }
   }
 
-  function toggleFavorite(id: string) {
-    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
+  async function toggleFavorite(task: Task) {
+    setPendingPriorityId(task.id);
+    try {
+      await setTaskPriority(uid, task.id, task.priority === 1 ? 3 : 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPendingPriorityId(null);
+    }
+  }
+
+  const activeTasks = useMemo(() => tasks.filter((task) => !task.done), [tasks]);
+  const doneTasks = useMemo(() => tasks.filter((task) => task.done), [tasks]);
+
+  function renderTask(task: Task) {
+    return (
+      <li
+        key={task.id}
+        className={`glass flex items-center gap-3 rounded-xl px-4 py-3.5 ${
+          !task.done && task.priority === 1 ? "border-gold/50" : ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => toggleDone(task)}
+          disabled={pendingId === task.id}
+          aria-pressed={task.done}
+          aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
+          className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+            task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
+          }`}
+        >
+          {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toggleDone(task)}
+          disabled={pendingId === task.id}
+          className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
+        >
+          <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
+            {task.title}
+          </span>
+          <span className={`glass-chip w-fit rounded-md px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(task.category)}`}>
+            {task.category}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toggleFavorite(task)}
+          disabled={pendingPriorityId === task.id}
+          aria-pressed={task.priority === 1}
+          aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
+          className="shrink-0 disabled:opacity-50"
+        >
+          <Star
+            className={`h-5 w-5 transition-colors ${
+              task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+            }`}
+          />
+        </button>
+      </li>
+    );
   }
 
   return (
@@ -47,55 +111,33 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
           Пока нет задач на сегодня
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {tasks.map((task) => (
-            <li
-              key={task.id}
-              className="glass flex items-center gap-3 rounded-xl px-4 py-3.5"
-            >
+        <>
+          {activeTasks.length > 0 ? (
+            <ul className="flex flex-col gap-3">{activeTasks.map((task) => renderTask(task))}</ul>
+          ) : (
+            <div className="glass rounded-xl px-4 py-6 text-center text-sm text-muted">
+              Все задачи на сегодня выполнены
+            </div>
+          )}
+
+          {doneTasks.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-3 border-t border-white/10" />
               <button
                 type="button"
-                onClick={() => toggleDone(task)}
-                disabled={pendingId === task.id}
-                aria-pressed={task.done}
-                aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-                className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-                  task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
-                }`}
+                onClick={() => setDoneOpen((prev) => !prev)}
+                className="glass-soft flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:text-fg"
               >
-                {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
+                <span>Выполнено {doneTasks.length}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? "" : "-rotate-90"}`} />
               </button>
 
-              <button
-                type="button"
-                onClick={() => toggleDone(task)}
-                disabled={pendingId === task.id}
-                className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
-              >
-                <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
-                  {task.title}
-                </span>
-                <span className={`glass-chip w-fit rounded-md px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(task.category)}`}>
-                  {task.category}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => toggleFavorite(task.id)}
-                aria-pressed={favorites[task.id] ?? false}
-                aria-label={favorites[task.id] ? "Убрать из избранного" : "Добавить в избранное"}
-                className="shrink-0"
-              >
-                <Star
-                  className={`h-5 w-5 transition-colors ${
-                    favorites[task.id] ? "fill-gold text-gold" : "text-muted hover:text-fg"
-                  }`}
-                />
-              </button>
-            </li>
-          ))}
-        </ul>
+              {doneOpen && (
+                <ul className="mt-3 flex flex-col gap-3">{doneTasks.map((task) => renderTask(task))}</ul>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

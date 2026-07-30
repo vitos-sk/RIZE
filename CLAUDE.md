@@ -25,6 +25,22 @@ Single-user (личный трекер), без мультиюзера/кома�
 Root layout оборачивает приложение в "телефонную" рамку (`max-w-107.5`, border/shadow на
 десктопе) — это сделано намеренно, не убирать.
 
+### Палитра: однотонная, один акцент
+
+База — тёплый графит (`--color-bg: #0c0b0a`, `--color-card: #171513`), без синевы.
+Акцент ровно один — золото; всё «хорошее» (выполнено, стрик, заработанный XP, активная
+вкладка, линия графика) показывается им. Второй и последний цвет — `--color-danger`:
+только отрицательный XP, просрочка, срыв привычки и выход/удаление. **Зелёного
+(`--color-success`) в теме больше нет** — его убрали намеренно, не возвращать.
+
+Категории и приоритеты цветом не кодируются: `category-style.ts` отдаёт нейтральные
+классы, а приоритет читается градацией непрозрачности белого (P1 `bg-white/70` → P4
+`bg-white/15`). Палитр вида `bg-purple-500/15` в `src/` быть не должно — если нужен
+ещё один уровень иерархии, это оттенок белого, а не новый цвет.
+
+`.app-aurora` — одно золотое пятно сверху и одно нейтральное снизу; больше цветных
+градиентов в фон не добавлять, именно они делали интерфейс пёстрым.
+
 ### Матовое стекло (глассморфизм)
 
 Все поверхности приложения — блоки, списки, чипы, бары, шторки, поля — построены на общем
@@ -55,7 +71,8 @@ app/
     layout.tsx            — оборачивает страницы в <TabBar/>
     page.tsx               — Главная / Dashboard  → "/"  (РЕАЛИЗОВАН, см. components/dashboard)
     tasks/page.tsx          → "/tasks"    (РЕАЛИЗОВАН, см. components/tasks)
-    calendar/page.tsx        → "/calendar"  (заглушка — месячная сетка, см. types/calendar.ts)
+    calendar/page.tsx        → "/calendar"  (РЕАЛИЗОВАН — месячная сетка на Firestore,
+                                              см. components/calendar + logic/calendar.ts)
     habits/page.tsx           → "/habits"   (заглушка)
     stats/page.tsx             → "/stats"    (РЕАЛИЗОВАН, см. components/stats + logic/stats.ts)
     goals/page.tsx               → "/goals"  (v2, вне таб-бара, доступен по прямой ссылке)
@@ -66,8 +83,8 @@ app/
 components/
   ui/page-placeholder.tsx    — общий "пустой" экран-заглушка (title + description)
   layout/tab-bar.tsx          — "use client" нижняя навигация (6 вкладок, lucide-react иконки)
-  dashboard/                   — РЕАЛЬНЫЕ компоненты Dashboard (score-header, stats-row,
-                                  productivity-chart, today-tasks) — уже свёрстаны по дизайну
+  dashboard/                   — РЕАЛЬНЫЕ компоненты Dashboard (today-tasks, kpi-row)
+  tasks/task-compose-flow.tsx   — ЕДИНАЯ форма создания задачи для /tasks и /calendar
 lib/
   firebase/config.ts          — initializeApp/getAuth/getFirestore из NEXT_PUBLIC_FIREBASE_*
   logic/xp.ts                  — xpForCompletion, penaltyForMissedDaily, levelFromXP
@@ -80,6 +97,11 @@ lib/
                                      периода, тренд, лучший/худший день, категории)
   logic/date.ts                    — toDateKey/fromDateKey, weekdayLabel/weekdayFullLabel,
                                       formatDayMonth/formatDateRange (даты живут в UTC)
+  logic/period.ts                   — примитивы скользящих окон (sumXP, logsBetween, shiftKey,
+                                       trendPercent, PERIOD_DAYS); общие для Главной и Статистики,
+                                       отдельный модуль, чтобы dashboard.ts и stats.ts не
+                                       импортировали друг друга
+  logic/dashboard.ts                 — buildDashboardKpi(logs, tasks, period) → KPI Главной
 types/
   task.ts, goal.ts, log.ts, user.ts, calendar.ts, index.ts — типы Firestore-схемы и календаря
 ```
@@ -124,14 +146,26 @@ Composed chart (Recharts): столбики = кол-во выполненных
 (score) за день, с переключателем период День/Неделя/Месяц, стрелкой тренда и сравнением
 с прошлым периодом (пунктир).
 
-На Главной реализован (`components/dashboard/productivity-chart.tsx` + `logic/dashboard.ts`):
-переключатель периода (`buildPeriodChart` — день = 6 корзин по 4 часа по `log.createdAt`,
-неделя = 7 дней, месяц = 4 недели) и стрелка тренда против предыдущего такого же периода.
-Страница подписана на 56 дней логов — этого хватает и на месяц, и на его сравнение.
-Пунктир прошлого периода живёт только на экране Статистики (`components/stats` +
-`logic/stats.ts`) — он тоже на реальных `logs`/`tasks` и тоже подписан на 56 дней логов.
+Живёт ТОЛЬКО на экране Статистики (`components/stats` + `logic/stats.ts`) — с Главной график
+убран намеренно, обратно не возвращать. На Главной вместо него KPI-строка
+(`components/dashboard/kpi-row.tsx` + `buildDashboardKpi`): «выполнено» (кол-во логов за
+период), «не успел» (плановые вхождения задач минус выполненные — через `plannedOccurrences`
+из `logic/stats.ts`, без дублирования формулы) и «средний рост» (средний XP в день + % к
+предыдущему такому же окну), с тем же переключателем `components/stats/period-tabs.tsx`.
+Обе страницы подписаны на 56 дней логов — этого хватает и на месяц, и на его сравнение.
 Окна везде скользящие и заканчиваются сегодняшним днём (неделя = последние 7 дней, а не
 календарная), сравнение — с таким же окном, сдвинутым назад.
+
+## Задачи: приоритет, архив, создание
+
+- Звёздочка в списке задач = приоритет P1 (`setTaskPriority`, повторный клик возвращает 3).
+  P1-задача всплывает наверх и получает золотую грань. Отдельного поля "избранное" нет.
+- Выполненная задача сразу уезжает в свёрнутый блок «Выполнено N»: на Главной под списком,
+  на /tasks — общим блоком внизу, вне категорий (счётчик у категории считает и выполненные).
+- Создание задачи — один компонент `components/tasks/task-compose-flow.tsx` на /tasks и
+  /calendar: шаги день (сетка месяца или «Без конкретного дня») → категория (+«Своё») →
+  детали (название, тип, приоритет, «плохая привычка»). `initialDate` пропускает первый шаг,
+  когда форму открыли из конкретного дня календаря.
 
 ## Окружение
 
@@ -148,7 +182,7 @@ Composed chart (Recharts): столбики = кол-во выполненных
   защита `(main)`-роутов через `AuthGate`). Вход через Google/Apple/Анонимно убран из макета
   (не нужен для MVP).
 - Dashboard читает реальные `tasks`/`logs`/`users` из Firestore вместо моков. Экран Tasks
-  (`components/tasks/tasks-screen.tsx` + `add-task-sheet.tsx`) тоже на Firestore: список через
+  (`components/tasks/tasks-screen.tsx` + `task-compose-flow.tsx`) тоже на Firestore: список через
   `subscribeAllTasks`, галочка через `completeTask`/`uncompleteTask`, кнопка "+" создаёт задачу
   через `createTask` (тип, категория, приоритет, дедлайн, флаг "плохая привычка").
   Habits — всё ещё на локальных моках.

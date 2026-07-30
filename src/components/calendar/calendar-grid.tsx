@@ -25,11 +25,13 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate }: CalendarGridP
           }
 
           const isSelected = cell.date === selectedDate;
+          // Заполненный день — золотом (заработан XP), провал — красным, будущее гасим.
+          // Сегодня/выбранный различаются силой грани, поэтому золото не путается.
           const statusClasses =
             cell.status === "completed"
-              ? "border-success/40 bg-success/12"
+              ? "border-gold/25 bg-gold/10"
               : cell.status === "missed"
-                ? "border-danger/40 bg-danger/12"
+                ? "border-danger/25 bg-danger/8"
                 : cell.status === "future"
                   ? "border-white/6 bg-white/3"
                   : "";
