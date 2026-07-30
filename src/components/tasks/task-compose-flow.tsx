@@ -89,6 +89,13 @@ export function TaskComposeFlow({
     [cursor, logsByDate, tasksByDate, todayKey],
   );
 
+  // «Без категории» — обычный пункт списка, всегда первый и ровно один:
+  // такие задачи уже есть в базе, поэтому строка приходит и из `categories`.
+  const categoryOptions = useMemo(
+    () => [NO_CATEGORY, ...categories.filter((cat) => cat !== NO_CATEGORY)],
+    [categories],
+  );
+
   const isFirstStep = step === (skipDateStep ? "category" : "date");
 
   function changeMonth(delta: number) {
@@ -159,8 +166,9 @@ export function TaskComposeFlow({
               onPrev={() => changeMonth(-1)}
               onNext={() => changeMonth(1)}
             />
-            <div className="mt-4">
+            <div className="mt-3">
               <CalendarGrid
+                compact
                 grid={grid}
                 selectedDate={selectedDate}
                 onSelectDate={(date) => {
@@ -175,7 +183,7 @@ export function TaskComposeFlow({
                 setSelectedDate(null);
                 setStep("category");
               }}
-              className="glass-soft mt-4 w-full rounded-xl px-4 py-3 text-center text-sm font-medium text-muted transition-colors hover:text-fg"
+              className="glass-soft mt-3 w-full rounded-xl px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:text-fg"
             >
               Без конкретного дня
             </button>
@@ -184,16 +192,7 @@ export function TaskComposeFlow({
 
         {step === "category" && (
           <ul className="flex flex-col gap-2.5">
-            <li>
-              <button
-                type="button"
-                onClick={() => chooseCategory(null)}
-                className="glass-soft w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
-              >
-                Без категории
-              </button>
-            </li>
-            {categories.map((cat) => (
+            {categoryOptions.map((cat) => (
               <li key={cat}>
                 <button
                   type="button"

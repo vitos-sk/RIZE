@@ -6,12 +6,12 @@ import { BarChart3, CalendarDays, Home, ListChecks, Target, User } from "lucide-
 import type { ComponentType } from "react";
 
 const TABS: { href: string; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { href: "/", label: "Главная", icon: Home },
-  { href: "/tasks", label: "Задачи", icon: ListChecks },
-  { href: "/calendar", label: "Календарь", icon: CalendarDays },
-  { href: "/habits", label: "Привычки", icon: Target },
-  { href: "/stats", label: "Статистика", icon: BarChart3 },
   { href: "/profile", label: "Профиль", icon: User },
+  { href: "/stats", label: "Статистика", icon: BarChart3 },
+  { href: "/habits", label: "Привычки", icon: Target },
+  { href: "/calendar", label: "Календарь", icon: CalendarDays },
+  { href: "/tasks", label: "Задачи", icon: ListChecks },
+  { href: "/", label: "Главная", icon: Home },
 ];
 
 export function TabBar() {

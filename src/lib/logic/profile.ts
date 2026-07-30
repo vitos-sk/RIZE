@@ -2,7 +2,7 @@ import type { Log } from "@/types/log";
 import type { Task } from "@/types/task";
 import type { FokusUser } from "@/types/user";
 import { levelProgress, type LevelProgress } from "@/lib/logic/xp";
-import { plannedOccurrences } from "@/lib/logic/stats";
+import { plannedOccurrences } from "@/lib/logic/completion";
 import { formatMonthYear, toDateKey } from "@/lib/logic/date";
 
 const MS_PER_DAY = 86_400_000;

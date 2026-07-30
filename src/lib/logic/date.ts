@@ -25,6 +25,21 @@ const MONTHS_GENITIVE = [
   "декабря",
 ] as const;
 
+const MONTHS_SHORT = [
+  "янв",
+  "фев",
+  "мар",
+  "апр",
+  "мая",
+  "июн",
+  "июл",
+  "авг",
+  "сен",
+  "окт",
+  "ноя",
+  "дек",
+] as const;
+
 export function toDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -45,6 +60,11 @@ export function weekdayFullLabel(date: Date): string {
 export function formatDayMonth(dateKey: string): string {
   const date = fromDateKey(dateKey);
   return `${date.getUTCDate()} ${MONTHS_GENITIVE[date.getUTCMonth()]}`;
+}
+
+/** Подпись месяца над колонками карты года: 'июл'. */
+export function formatMonthShort(dateKey: string): string {
+  return MONTHS_SHORT[fromDateKey(dateKey).getUTCMonth()];
 }
 
 /** Для «Участник с …»: месяц в родительном падеже — 'марта 2025'. */

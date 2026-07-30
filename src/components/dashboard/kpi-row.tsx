@@ -1,13 +1,14 @@
 "use client";
 
-import { CheckCircle2, TrendingDown, TrendingUp, XCircle } from "lucide-react";
+import { CheckCircle2, Target, TrendingDown, TrendingUp, XCircle } from "lucide-react";
 import { PeriodTabs, type Period } from "@/components/stats/period-tabs";
 
 interface KpiRowProps {
   done: number;
+  planned: number;
   missed: number;
-  avgXp: number;
-  avgChangePercent: number;
+  rate: number;
+  ratePoints: number;
   comparisonLabel: string;
   period: Period;
   onPeriodChange: (period: Period) => void;
@@ -15,46 +16,50 @@ interface KpiRowProps {
 
 export function KpiRow({
   done,
+  planned,
   missed,
-  avgXp,
-  avgChangePercent,
+  rate,
+  ratePoints,
   comparisonLabel,
   period,
   onPeriodChange,
 }: KpiRowProps) {
-  const isUp = avgChangePercent >= 0;
-  const TrendIcon = isUp ? TrendingUp : TrendingDown;
+  const isFlat = ratePoints === 0;
+  const isUp = ratePoints > 0;
+  const TrendIcon = isFlat ? Target : isUp ? TrendingUp : TrendingDown;
+  const trendTone = isFlat ? "text-muted" : isUp ? "text-gold" : "text-danger";
 
   return (
-    <div className="glass rounded-2xl p-4">
-      <PeriodTabs value={period} onChange={onPeriodChange} />
+    <div>
+      <PeriodTabs value={period} onChange={onPeriodChange} bare />
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-4">
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-3.5">
           <CheckCircle2 className="h-5 w-5 text-gold" />
-          <span className="text-xl font-bold text-fg">{done}</span>
+          <span className="text-xl font-bold text-fg">
+            {done}
+            <span className="text-sm font-medium text-muted">/{planned}</span>
+          </span>
           <span className="text-xs text-muted">выполнено</span>
         </div>
 
-        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-4">
-          <XCircle className="h-5 w-5 text-danger" />
+        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-3.5">
+          <XCircle className={`h-5 w-5 ${missed > 0 ? "text-danger" : "text-muted"}`} />
           <span className="text-xl font-bold text-fg">{missed}</span>
-          <span className="text-xs text-muted">не успел</span>
+          <span className="text-xs text-muted">пропущено</span>
         </div>
 
-        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-4">
-          <TrendIcon className={`h-5 w-5 ${isUp ? "text-gold" : "text-danger"}`} />
-          <span className="text-xl font-bold text-fg">
-            {avgXp > 0 ? `+${avgXp}` : avgXp}
-          </span>
+        <div className="glass-soft flex flex-col items-center gap-1.5 rounded-xl py-3.5">
+          <TrendIcon className={`h-5 w-5 ${trendTone}`} />
+          <span className="text-xl font-bold text-fg">{rate}%</span>
           <span className="text-center text-xs text-muted">
-            сред. рост
+            плана
             <span
               title={`к периоду «${comparisonLabel}»`}
-              className={`ml-1 font-bold ${isUp ? "text-gold" : "text-danger"}`}
+              className={`ml-1 font-bold ${trendTone}`}
             >
               {isUp ? "+" : ""}
-              {avgChangePercent}%
+              {ratePoints} п.п.
             </span>
           </span>
         </div>

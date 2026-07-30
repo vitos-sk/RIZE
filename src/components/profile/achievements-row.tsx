@@ -36,7 +36,7 @@ export function AchievementsRow({ achievements, earnedCount }: AchievementsRowPr
         </span>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-3 overflow-x-auto pb-1">
         {achievements.map(({ id, progress, target, unlocked }) => {
           const { icon: Icon, title, subtitle } = META[id];
           const percent = Math.min(100, Math.round((progress / target) * 100));

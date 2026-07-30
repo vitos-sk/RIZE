@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronDown, Star } from "lucide-react";
-import { categoryBadgeClass } from "@/components/calendar/category-style";
-import { completeTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
+import { SwipeToDelete } from "@/components/tasks/swipe-to-delete";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { completeTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import type { Task } from "@/types/task";
 
 interface TodayTasksProps {
@@ -16,6 +17,23 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pendingPriorityId, setPendingPriorityId] = useState<string | null>(null);
   const [doneOpen, setDoneOpen] = useState(false);
+  const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!taskToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteTask(uid, taskToDelete.id);
+      setTaskToDelete(null);
+      setSwipedId(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function toggleDone(task: Task) {
     setPendingId(task.id);
@@ -46,54 +64,61 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
 
   function renderTask(task: Task) {
     return (
-      <li
+      <SwipeToDelete
         key={task.id}
-        className={`glass flex items-center gap-3 rounded-xl px-4 py-3.5 ${
-          !task.done && task.priority === 1 ? "border-gold/50" : ""
-        }`}
+        open={swipedId === task.id}
+        onOpenChange={(open) => setSwipedId(open ? task.id : null)}
+        onDelete={() => setTaskToDelete(task)}
+        label={`Удалить задачу «${task.title}»`}
       >
-        <button
-          type="button"
-          onClick={() => toggleDone(task)}
-          disabled={pendingId === task.id}
-          aria-pressed={task.done}
-          aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-          className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-            task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
+        <div
+          className={`glass flex items-center gap-2.5 rounded-xl px-3.5 py-2 ${
+            !task.done && task.priority === 1 ? "border-gold/50" : ""
           }`}
         >
-          {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleDone(task)}
-          disabled={pendingId === task.id}
-          className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
-        >
-          <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
-            {task.title}
-          </span>
-          <span className={`glass-chip w-fit rounded-md px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(task.category)}`}>
-            {task.category}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleFavorite(task)}
-          disabled={pendingPriorityId === task.id}
-          aria-pressed={task.priority === 1}
-          aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
-          className="shrink-0 disabled:opacity-50"
-        >
-          <Star
-            className={`h-5 w-5 transition-colors ${
-              task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+          <button
+            type="button"
+            onClick={() => toggleDone(task)}
+            disabled={pendingId === task.id}
+            aria-pressed={task.done}
+            aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
+            className={`glass-chip flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+              task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
             }`}
-          />
-        </button>
-      </li>
+          >
+            {task.done && <Check className="h-3.5 w-3.5 text-gold" strokeWidth={3} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleDone(task)}
+            disabled={pendingId === task.id}
+            className={`flex flex-1 flex-col items-start gap-0.5 text-left ${task.done ? "opacity-60" : ""}`}
+          >
+            <span className={`text-sm font-medium leading-tight text-fg ${task.done ? "line-through" : ""}`}>
+              {task.title}
+            </span>
+            <span className="w-fit text-[11px] font-medium leading-tight text-muted">
+              {task.category}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleFavorite(task)}
+            disabled={pendingPriorityId === task.id}
+            aria-pressed={task.priority === 1}
+            aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
+            className="shrink-0 disabled:opacity-50"
+          >
+            <Star
+              className={`h-4.5 w-4.5 transition-colors ${
+                task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+              }`}
+            />
+          </button>
+        </div>
+      </SwipeToDelete>
     );
   }
 
@@ -113,7 +138,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
       ) : (
         <>
           {activeTasks.length > 0 ? (
-            <ul className="flex flex-col gap-3">{activeTasks.map((task) => renderTask(task))}</ul>
+            <ul className="flex flex-col gap-2">{activeTasks.map((task) => renderTask(task))}</ul>
           ) : (
             <div className="glass rounded-xl px-4 py-6 text-center text-sm text-muted">
               Все задачи на сегодня выполнены
@@ -133,11 +158,22 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
               </button>
 
               {doneOpen && (
-                <ul className="mt-3 flex flex-col gap-3">{doneTasks.map((task) => renderTask(task))}</ul>
+                <ul className="mt-2 flex flex-col gap-2">{doneTasks.map((task) => renderTask(task))}</ul>
               )}
             </div>
           )}
         </>
+      )}
+
+      {taskToDelete && (
+        <ConfirmDialog
+          title={`Удалить «${taskToDelete.title}»?`}
+          description="Задача и вся её история выполнений удалятся навсегда, начисленный за неё XP спишется."
+          confirmLabel="Удалить"
+          pending={deleting}
+          onConfirm={confirmDelete}
+          onCancel={() => setTaskToDelete(null)}
+        />
       )}
     </div>
   );

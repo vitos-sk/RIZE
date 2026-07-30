@@ -1,15 +1,8 @@
 import type { Log } from "@/types/log";
 import type { Task } from "@/types/task";
 import { toDateKey } from "@/lib/logic/date";
-import { plannedOccurrences } from "@/lib/logic/stats";
-import {
-  PERIOD_DAYS,
-  logsBetween,
-  shiftKey,
-  sumXP,
-  trendPercent,
-  type DashboardPeriod,
-} from "@/lib/logic/period";
+import { aggregateCompletion, buildDayStats } from "@/lib/logic/completion";
+import { PERIOD_DAYS, shiftKey, type DashboardPeriod } from "@/lib/logic/period";
 
 const COMPARISON_LABEL: Record<DashboardPeriod, string> = {
   day: "вчера",
@@ -19,17 +12,19 @@ const COMPARISON_LABEL: Record<DashboardPeriod, string> = {
 
 export interface DashboardKpi {
   done: number;
+  planned: number;
   missed: number;
-  avgXp: number;
-  avgChangePercent: number;
+  /** % выполнения плана за окно. */
+  rate: number;
+  /** Сдвиг к такому же предыдущему окну — в процентных пунктах. */
+  ratePoints: number;
   comparisonLabel: string;
 }
 
 /**
- * KPI-блок Главной: «выполнено»/«не успел» по скользящему окну периода, «средний рост» —
- * средний XP в день за то же окно + % изменения к такому же предыдущему окну.
- * «Не успел» переиспользует plannedOccurrences из stats.ts (та же логика плановых
- * вхождений задачи в окно, что и на экране Статистики), чтобы не дублировать расчёт.
+ * KPI-блок Главной по скользящему окну периода: выполнено, пропущено и % выполнения плана
+ * со сдвигом к такому же предыдущему окну. Игровой XP здесь не участвует — обе страницы
+ * считают одно и то же через `logic/completion`.
  */
 export function buildDashboardKpi(
   logs: Log[],
@@ -38,36 +33,19 @@ export function buildDashboardKpi(
   todayKey: string = toDateKey(new Date()),
 ): DashboardKpi {
   const days = PERIOD_DAYS[period];
-  const fromKey = shiftKey(todayKey, -(days - 1));
-  const prevFromKey = shiftKey(todayKey, -(days * 2 - 1));
-  const prevToKey = shiftKey(todayKey, -days);
-
-  const currentLogs = logsBetween(logs, fromKey, todayKey);
-  const done = currentLogs.length;
-
-  const doneByTask = new Map<string, number>();
-  for (const log of currentLogs) {
-    doneByTask.set(log.taskId, (doneByTask.get(log.taskId) ?? 0) + 1);
-  }
-
-  const missed = tasks
-    .filter((task) => !task.isNegative)
-    .reduce((sum, task) => {
-      const planned = plannedOccurrences(task, fromKey, todayKey);
-      const done = doneByTask.get(task.id) ?? 0;
-      return sum + Math.max(0, planned - done);
-    }, 0);
-
-  const currentScore = sumXP(currentLogs);
-  const prevScore = sumXP(logsBetween(logs, prevFromKey, prevToKey));
-  const avgXp = Math.round(currentScore / days);
-  const prevAvgXp = prevScore / days;
+  const current = aggregateCompletion(
+    buildDayStats(tasks, logs, shiftKey(todayKey, -(days - 1)), todayKey),
+  );
+  const previous = aggregateCompletion(
+    buildDayStats(tasks, logs, shiftKey(todayKey, -(days * 2 - 1)), shiftKey(todayKey, -days)),
+  );
 
   return {
-    done,
-    missed,
-    avgXp,
-    avgChangePercent: trendPercent(avgXp, prevAvgXp),
+    done: current.done,
+    planned: current.planned,
+    missed: current.missed,
+    rate: current.rate,
+    ratePoints: current.rate - previous.rate,
     comparisonLabel: COMPARISON_LABEL[period],
   };
 }

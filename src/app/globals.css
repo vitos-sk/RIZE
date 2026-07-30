@@ -32,6 +32,10 @@ html {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* Приложение должно вести себя как нативное: без серой вспышки под пальцем
+     и без контекстного меню по долгому нажатию. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 body {
@@ -40,6 +44,44 @@ body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* Текст в приложении не выделяется — тап по карточке/графику не должен
+     подсвечивать подписи. Исключение ниже — поля ввода. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Полосы прокрутки не рисуем нигде: скролл остаётся, ползунка не видно.
+   Своя полоса появится, когда для неё придёт дизайн. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Recharts вешает tabindex/role на обёртку — браузер рисует по клику фокусную
+   рамку. Тултип должен появляться без обводок и рамок. */
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-surface,
+.recharts-surface * {
+  outline: none !important;
+}
+
+.recharts-wrapper {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
 }
 
 @layer components {

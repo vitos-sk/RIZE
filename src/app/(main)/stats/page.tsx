@@ -7,8 +7,10 @@ import { subscribeRecentLogs } from "@/lib/firebase/logs";
 import { subscribeAllTasks } from "@/lib/firebase/tasks";
 import { buildStatsScreen, STATS_HISTORY_DAYS } from "@/lib/logic/stats";
 import { PeriodTabs, type Period } from "@/components/stats/period-tabs";
-import { ScoreComparisonCard } from "@/components/stats/score-comparison-card";
-import { TasksScoreChart } from "@/components/stats/tasks-score-chart";
+import { CompletionSummaryCard } from "@/components/stats/completion-summary-card";
+import { CompletionChart } from "@/components/stats/completion-chart";
+import { QualityRow } from "@/components/stats/quality-row";
+import { RhythmCard } from "@/components/stats/rhythm-card";
 import { DayHighlightCards } from "@/components/stats/day-highlight-cards";
 import { CategoryCompletion } from "@/components/stats/category-completion";
 import type { Log } from "@/types/log";
@@ -49,18 +51,34 @@ export default function StatsPage() {
 
       <PeriodTabs value={period} onChange={setPeriod} />
 
-      <ScoreComparisonCard
-        changePercent={data.changePercent}
+      <CompletionSummaryCard
+        rate={data.totals.rate}
+        ratePoints={data.ratePoints}
+        prevRate={data.prevRate}
+        done={data.totals.done}
+        planned={data.totals.planned}
+        perDay={data.totals.perDay}
+        prevPerDay={data.prevPerDay}
         rangeLabel={data.rangeLabel}
-        windowLabel={period}
-        currentScore={data.currentScore}
-      />
-
-      <TasksScoreChart
-        data={data.chart}
-        todayLabel={data.todayLabel}
         comparisonLabel={data.comparisonLabel}
       />
+
+      <CompletionChart
+        data={data.chart}
+        unitLabel={data.chartUnitLabel}
+        currentLabel={data.currentLabel}
+        comparisonLabel={data.comparisonLabel}
+      />
+
+      <QualityRow
+        onTimeRate={data.totals.onTimeRate}
+        onTime={data.totals.onTime}
+        done={data.totals.done}
+        missed={data.totals.missed}
+        lapses={data.totals.lapses}
+      />
+
+      <RhythmCard rhythm={data.rhythm} />
 
       <DayHighlightCards best={data.best} worst={data.worst} />
 

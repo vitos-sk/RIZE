@@ -45,9 +45,10 @@ export default function DashboardPage() {
       <TodayTasks uid={user.uid} tasks={todayTasks} />
       <KpiRow
         done={kpi.done}
+        planned={kpi.planned}
         missed={kpi.missed}
-        avgXp={kpi.avgXp}
-        avgChangePercent={kpi.avgChangePercent}
+        rate={kpi.rate}
+        ratePoints={kpi.ratePoints}
         comparisonLabel={kpi.comparisonLabel}
         period={period}
         onPeriodChange={setPeriod}

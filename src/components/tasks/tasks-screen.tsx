@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { ArrowDownUp, Check, ChevronDown, Clock, Plus, Repeat, Skull, Star, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 import { categoryDotColor, priorityBarClass } from "@/components/calendar/category-style";
-import { completeTask, createTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import { fromDateKey } from "@/lib/logic/date";
 import { xpForCompletion } from "@/lib/logic/xp";
+import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
 import type { Task, TaskType } from "@/types/task";
 
@@ -65,6 +67,23 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   const [pendingPriorityId, setPendingPriorityId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [doneOpen, setDoneOpen] = useState(false);
+  const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!taskToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteTask(uid, taskToDelete.id);
+      setTaskToDelete(null);
+      setSwipedId(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function toggleDone(task: Task) {
     setPendingId(task.id);
@@ -139,79 +158,86 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     const isOverdue = !task.done && task.type === "once" && !!task.dueDate && task.dueDate < todayKey;
     const xp = xpForCompletion(task, !isOverdue);
     return (
-      <li
+      <SwipeToDelete
         key={task.id}
-        className={`glass relative flex items-center gap-3 overflow-hidden rounded-xl py-3.5 pl-5 pr-4 ${
-          isOverdue ? "border-danger/50" : !task.done && task.priority === 1 ? "border-gold/50" : ""
-        }`}
+        open={swipedId === task.id}
+        onOpenChange={(open) => setSwipedId(open ? task.id : null)}
+        onDelete={() => setTaskToDelete(task)}
+        label={`Удалить задачу «${task.title}»`}
       >
-        <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
-
-        <button
-          type="button"
-          onClick={() => toggleDone(task)}
-          disabled={pendingId === task.id}
-          aria-pressed={task.done}
-          aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-          className={`glass-chip flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-            task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
+        <div
+          className={`glass relative flex items-center gap-2.5 overflow-hidden rounded-xl py-2 pl-4 pr-3.5 ${
+            isOverdue ? "border-danger/50" : !task.done && task.priority === 1 ? "border-gold/50" : ""
           }`}
         >
-          {task.done && <Check className="h-4 w-4 text-gold" strokeWidth={3} />}
-        </button>
+          <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
 
-        <button
-          type="button"
-          onClick={() => toggleDone(task)}
-          disabled={pendingId === task.id}
-          className={`flex flex-1 flex-col items-start gap-1 text-left ${task.done ? "opacity-60" : ""}`}
-        >
-          <span className={`text-sm font-medium text-fg ${task.done ? "line-through" : ""}`}>
-            {task.title}
-          </span>
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            {task.isNegative ? (
-              <span className="flex items-center gap-1 font-medium text-danger">
-                <Skull className="h-3.5 w-3.5" />
-                Плохая привычка
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 text-muted">
-                <TypeIcon className="h-3.5 w-3.5" />
-                {TYPE_META[task.type].label}
-              </span>
-            )}
-            {task.dueDate && (
-              <span className={isOverdue ? "font-medium text-danger" : "text-muted"}>
-                {isOverdue ? `Просрочено · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
-              </span>
-            )}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleFavorite(task)}
-          disabled={pendingPriorityId === task.id}
-          aria-pressed={task.priority === 1}
-          aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
-          className="shrink-0 disabled:opacity-50"
-        >
-          <Star
-            className={`h-5 w-5 transition-colors ${
-              task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+          <button
+            type="button"
+            onClick={() => toggleDone(task)}
+            disabled={pendingId === task.id}
+            aria-pressed={task.done}
+            aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
+            className={`glass-chip flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+              task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
             }`}
-          />
-        </button>
+          >
+            {task.done && <Check className="h-3.5 w-3.5 text-gold" strokeWidth={3} />}
+          </button>
 
-        <span
-          className={`shrink-0 text-xs font-bold ${xp < 0 ? "text-danger" : "text-gold"} ${
-            task.done ? "opacity-60" : ""
-          }`}
-        >
-          {xp > 0 ? `+${xp}` : xp} XP
-        </span>
-      </li>
+          <button
+            type="button"
+            onClick={() => toggleDone(task)}
+            disabled={pendingId === task.id}
+            className={`flex flex-1 flex-col items-start gap-0.5 text-left ${task.done ? "opacity-60" : ""}`}
+          >
+            <span className={`text-sm font-medium leading-tight text-fg ${task.done ? "line-through" : ""}`}>
+              {task.title}
+            </span>
+            <span className="flex flex-wrap items-center gap-x-2 text-[11px] leading-tight">
+              {task.isNegative ? (
+                <span className="flex items-center gap-1 font-medium text-danger">
+                  <Skull className="h-3 w-3" />
+                  Плохая привычка
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-muted">
+                  <TypeIcon className="h-3 w-3" />
+                  {TYPE_META[task.type].label}
+                </span>
+              )}
+              {task.dueDate && (
+                <span className={isOverdue ? "font-medium text-danger" : "text-muted"}>
+                  {isOverdue ? `Просрочено · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
+                </span>
+              )}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleFavorite(task)}
+            disabled={pendingPriorityId === task.id}
+            aria-pressed={task.priority === 1}
+            aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
+            className="shrink-0 disabled:opacity-50"
+          >
+            <Star
+              className={`h-4.5 w-4.5 transition-colors ${
+                task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+              }`}
+            />
+          </button>
+
+          <span
+            className={`shrink-0 text-[11px] font-bold ${xp < 0 ? "text-danger" : "text-gold"} ${
+              task.done ? "opacity-60" : ""
+            }`}
+          >
+            {xp > 0 ? `+${xp}` : xp} XP
+          </span>
+        </div>
+      </SwipeToDelete>
     );
   }
 
@@ -252,12 +278,12 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           })}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           {groups.map(([category, categoryTasks]) => {
             const isCollapsed = collapsed[category];
             const doneCount = categoryTasks.filter((task) => task.done).length;
             return (
-              <div key={category} className="flex flex-col gap-3">
+              <div key={category} className="flex flex-col gap-2">
                 <button type="button" onClick={() => toggleCategory(category)} className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-base font-semibold text-fg">
                     <span className={`h-2.5 w-2.5 rounded-full ${categoryDotColor(category)}`} />
@@ -271,7 +297,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
 
                 {!isCollapsed && (
                   categoryTasks.some((task) => !task.done) ? (
-                    <ul className="flex flex-col gap-3">
+                    <ul className="flex flex-col gap-2">
                       {categoryTasks.filter((task) => !task.done).map((task) => renderTaskRow(task))}
                     </ul>
                   ) : (
@@ -291,7 +317,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           )}
 
           {doneTasks.length > 0 && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setDoneOpen((prev) => !prev)}
@@ -302,7 +328,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
               </button>
 
               {doneOpen && (
-                <ul className="flex flex-col gap-3">{doneTasks.map((task) => renderTaskRow(task))}</ul>
+                <ul className="flex flex-col gap-2">{doneTasks.map((task) => renderTaskRow(task))}</ul>
               )}
             </div>
           )}
@@ -317,6 +343,17 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       >
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </button>
+
+      {taskToDelete && (
+        <ConfirmDialog
+          title={`Удалить «${taskToDelete.title}»?`}
+          description="Задача и вся её история выполнений удалятся навсегда, начисленный за неё XP спишется."
+          confirmLabel="Удалить"
+          pending={deleting}
+          onConfirm={confirmDelete}
+          onCancel={() => setTaskToDelete(null)}
+        />
+      )}
 
       {sheetOpen && (
         <TaskComposeFlow

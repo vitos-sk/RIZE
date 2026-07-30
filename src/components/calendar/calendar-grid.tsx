@@ -7,21 +7,31 @@ interface CalendarGridProps {
   grid: MonthGrid;
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  /**
+   * Компактная сетка для выбора дня в форме создания задачи: квадратные ячейки
+   * с одним числом и точкой-индикатором вместо списка задач — так месяц влезает
+   * в шторку целиком, без прокрутки.
+   */
+  compact?: boolean;
 }
 
-export function CalendarGrid({ grid, selectedDate, onSelectDate }: CalendarGridProps) {
+export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false }: CalendarGridProps) {
   return (
     <div>
-      <div className="grid grid-cols-7 gap-x-1 pb-2 text-center text-xs font-medium text-muted">
+      <div
+        className={`grid grid-cols-7 gap-x-1 text-center font-medium text-muted ${
+          compact ? "pb-1 text-[11px]" : "pb-2 text-xs"
+        }`}
+      >
         {WEEKDAYS.map((day) => (
           <div key={day}>{day}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-x-1 gap-y-5">
+      <div className={`grid grid-cols-7 gap-x-1 ${compact ? "gap-y-1" : "gap-y-5"}`}>
         {grid.weeks.flat().map((cell) => {
           if (!cell.isCurrentMonth) {
-            return <div key={cell.date} className="h-24" />;
+            return <div key={cell.date} className={compact ? "h-9" : "h-24"} />;
           }
 
           const isSelected = cell.date === selectedDate;
@@ -36,29 +46,54 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate }: CalendarGridP
                   ? "border-white/6 bg-white/3"
                   : "";
 
+          const selectionClasses = isSelected
+            ? "border-gold ring-2 ring-gold/60"
+            : cell.isToday
+              ? "border-gold/70"
+              : "";
+
+          const numberClasses = isSelected
+            ? "bg-gold text-bg"
+            : cell.isToday
+              ? "text-gold"
+              : cell.status === "future"
+                ? "text-muted"
+                : "text-fg";
+
+          if (compact) {
+            const hasTasks = cell.tasks.length > 0 || cell.hiddenCount > 0;
+            return (
+              <button
+                key={cell.date}
+                type="button"
+                onClick={() => onSelectDate(cell.date)}
+                className={`glass-soft flex h-9 flex-col items-center justify-center gap-0.5 rounded-lg text-xs font-semibold transition-colors ${statusClasses} ${selectionClasses} ${
+                  isSelected ? "bg-gold text-bg" : numberClasses
+                }`}
+              >
+                {cell.dayNumber}
+                <span
+                  className={`h-1 w-1 rounded-full ${
+                    hasTasks
+                      ? isSelected
+                        ? "bg-bg/70"
+                        : categoryDotColor(cell.tasks[0]?.category ?? "")
+                      : "bg-transparent"
+                  }`}
+                />
+              </button>
+            );
+          }
+
           return (
             <button
               key={cell.date}
               type="button"
               onClick={() => onSelectDate(cell.date)}
-              className={`glass-soft flex h-24 flex-col gap-0.5 overflow-hidden rounded-xl p-1.5 text-left transition-colors ${statusClasses} ${
-                isSelected
-                  ? "border-gold ring-2 ring-gold/60"
-                  : cell.isToday
-                    ? "border-gold/70"
-                    : ""
-              }`}
+              className={`glass-soft flex h-24 flex-col gap-0.5 overflow-hidden rounded-xl p-1.5 text-left transition-colors ${statusClasses} ${selectionClasses}`}
             >
               <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${
-                  isSelected
-                    ? "bg-gold text-bg"
-                    : cell.isToday
-                      ? "text-gold"
-                      : cell.status === "future"
-                        ? "text-muted"
-                        : "text-fg"
-                }`}
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${numberClasses}`}
               >
                 {cell.dayNumber}
               </span>
