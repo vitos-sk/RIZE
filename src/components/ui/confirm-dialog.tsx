@@ -22,34 +22,53 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onCancel} />
+      <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onCancel} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="glass-bar absolute inset-x-5 top-1/2 z-40 -translate-y-1/2 rounded-2xl px-5 py-5"
+        className="paper-sheet absolute inset-x-5 top-1/2 z-40 -translate-y-1/2"
       >
-        <h2 className="text-base font-bold text-fg">{title}</h2>
-        {description && <p className="mt-1.5 text-sm text-muted">{description}</p>}
+        <div className="paper-sheet-bg absolute inset-0 rounded-[2px]" aria-hidden="true" />
 
-        <div className="mt-5 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={pending}
-            className="glass-soft flex-1 rounded-xl py-3 text-sm font-medium text-muted transition-colors hover:text-fg disabled:opacity-50"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={pending}
-            className="glass flex-1 rounded-xl border-danger/50 bg-danger/20 py-3 text-sm font-semibold text-danger transition-colors active:bg-danger/30 disabled:opacity-50"
-          >
-            {pending ? "Удаляем…" : confirmLabel}
-          </button>
+        {/* Записка приклеена к экрану скотчем — как карточки на Главной. */}
+        <span
+          className="paper-tape absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 -rotate-[3deg]"
+          aria-hidden="true"
+        />
+
+        <div className="relative px-5 pt-6 pb-5">
+          <h2 className="font-hand text-2xl leading-tight font-bold text-ink">{title}</h2>
+          {description && (
+            <p className="mt-2 font-note text-[0.95rem] leading-snug text-ink-soft">{description}</p>
+          )}
+
+          <div className="mt-5 flex gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={pending}
+              className="paper-sheet flex-1 disabled:opacity-50"
+            >
+              <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3 font-note text-[0.95rem] text-ink-soft">
+                {cancelLabel}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={pending}
+              className="paper-sheet flex-1 disabled:opacity-50"
+            >
+              <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3 font-note text-[0.95rem] font-bold text-ink-red">
+                {pending ? "Удаляем…" : confirmLabel}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </>

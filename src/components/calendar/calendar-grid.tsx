@@ -19,8 +19,8 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
   return (
     <div>
       <div
-        className={`grid grid-cols-7 gap-x-1 text-center font-medium text-muted ${
-          compact ? "pb-1 text-[11px]" : "pb-2 text-xs"
+        className={`grid grid-cols-7 gap-x-1 text-center ${
+          compact ? "pb-1 font-note text-xs text-ink-soft" : "pb-2 text-xs font-medium text-muted"
         }`}
       >
         {WEEKDAYS.map((day) => (
@@ -62,23 +62,26 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
 
           if (compact) {
             const hasTasks = cell.tasks.length > 0 || cell.hiddenCount > 0;
+            // Компактная сетка живёт только в бумажной форме создания задачи,
+            // поэтому здесь своя палитра: чернила, оливковый выбранный день.
+            const paperCell = isSelected
+              ? "bg-olive font-bold text-ink"
+              : cell.isToday
+                ? "text-ink underline decoration-ink-green decoration-2 underline-offset-2"
+                : cell.status === "future"
+                  ? "text-ink-soft"
+                  : "text-ink";
             return (
               <button
                 key={cell.date}
                 type="button"
                 onClick={() => onSelectDate(cell.date)}
-                className={`glass-soft flex h-9 flex-col items-center justify-center gap-0.5 rounded-lg text-xs font-semibold transition-colors ${statusClasses} ${selectionClasses} ${
-                  isSelected ? "bg-gold text-bg" : numberClasses
-                }`}
+                className={`flex h-9 flex-col items-center justify-center gap-0.5 rounded-md font-note text-sm transition-colors ${paperCell}`}
               >
                 {cell.dayNumber}
                 <span
                   className={`h-1 w-1 rounded-full ${
-                    hasTasks
-                      ? isSelected
-                        ? "bg-bg/70"
-                        : categoryDotColor(cell.tasks[0]?.category ?? "")
-                      : "bg-transparent"
+                    hasTasks ? (isSelected ? "bg-ink/60" : "bg-ink-green") : "bg-transparent"
                   }`}
                 />
               </button>

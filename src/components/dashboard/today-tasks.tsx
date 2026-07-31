@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Check, ChevronDown, Star } from "lucide-react";
 import { SwipeToDelete } from "@/components/tasks/swipe-to-delete";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import { completeTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import type { Task } from "@/types/task";
 
@@ -11,9 +12,6 @@ interface TodayTasksProps {
   uid: string;
   tasks: Task[];
 }
-
-// Перфорация по верхней кромке листа — как у вырванной страницы блокнота.
-const HOLES = Array.from({ length: 14 }, (_, index) => index);
 
 /** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
 function categoryDotClass(category: string): string {
@@ -151,20 +149,8 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
   }
 
   return (
-    <section className="paper-sheet">
-      <div className="paper-sheet-bg absolute inset-0 rounded-[2px]" aria-hidden="true" />
-
-      {/* Дырки перфорации лежат на самой кромке листа, поэтому вынесены из потока. */}
-      <div className="absolute inset-x-4 top-2.5 flex justify-between" aria-hidden="true">
-        {HOLES.map((hole) => (
-          <span key={hole} className="paper-hole h-3.5 w-3.5 rounded-full" />
-        ))}
-      </div>
-
-      <div className="relative pt-9 pb-2">
-        {/* Поле тетради — вертикальная линия слева, как на разлинованном листе. */}
-        <span className="paper-line absolute inset-y-1 left-3 w-px opacity-70" aria-hidden="true" />
-
+    <>
+      <PaperSheet perforated ruled innerClassName="pb-2">
         {tasks.length === 0 ? (
           <p className="px-5 py-8 text-center font-note text-[0.95rem] text-ink-soft">
             Пока нет задач на сегодня
@@ -201,7 +187,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
             )}
           </>
         )}
-      </div>
+      </PaperSheet>
 
       {taskToDelete && (
         <ConfirmDialog
@@ -213,6 +199,6 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
           onCancel={() => setTaskToDelete(null)}
         />
       )}
-    </section>
+    </>
   );
 }

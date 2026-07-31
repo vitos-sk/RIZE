@@ -3,13 +3,13 @@
 import { useMemo, useState } from "react";
 import { ArrowDownUp, Check, ChevronDown, Clock, Plus, Repeat, Skull, Star, Zap } from "lucide-react";
 import type { ComponentType } from "react";
-import { categoryDotColor, priorityBarClass } from "@/components/calendar/category-style";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import { fromDateKey } from "@/lib/logic/date";
 import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
-import type { Task, TaskType } from "@/types/task";
+import type { Priority, Task, TaskType } from "@/types/task";
 
 type Filter = "all" | TaskType;
 type Sort = "priority" | "due" | "title";
@@ -41,9 +41,23 @@ const SORTS: { value: Sort; label: string }[] = [
 
 const SUGGESTED_CATEGORIES = ["Работа", "Спорт", "Учёба", "Здоровье"];
 
+// Приоритет на бумаге — нажим карандаша: P1 чёрный штрих, P4 еле заметный.
+const PRIORITY_STROKE: Record<Priority, string> = {
+  1: "bg-ink/55",
+  2: "bg-ink/35",
+  3: "bg-ink/20",
+  4: "bg-ink/10",
+};
+
 function formatDue(dateKey: string): string {
   const [year, month, day] = dateKey.split("-");
   return `${day}.${month}.${year.slice(2)}`;
+}
+
+/** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
+function categoryDotClass(category: string): string {
+  const empty = !category || category.toLowerCase() === "без категории";
+  return empty ? "bg-ink-soft/60" : "bg-ink-green";
 }
 
 function compareTasks(sort: Sort, a: Task, b: Task): number {
@@ -152,23 +166,34 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     return filtered.filter((task) => task.done).sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0));
   }, [tasks, filter]);
 
-  function renderTaskRow(task: Task) {
+  function renderTaskRow(task: Task, index: number) {
     const TypeIcon = TYPE_META[task.type].icon;
     const isOverdue = !task.done && task.type === "once" && !!task.dueDate && task.dueDate < todayKey;
+    const swiped = swipedId === task.id;
+
     return (
       <SwipeToDelete
         key={task.id}
-        open={swipedId === task.id}
+        tone="paper"
+        open={swiped}
         onOpenChange={(open) => setSwipedId(open ? task.id : null)}
         onDelete={() => setTaskToDelete(task)}
         label={`Удалить задачу «${task.title}»`}
       >
+        {/* Пока строку тянут, ей нужен непрозрачный фон — иначе сквозь неё
+            просвечивает кнопка удаления, которая лежит слоем ниже. */}
         <div
-          className={`glass relative flex items-center gap-2.5 overflow-hidden rounded-xl py-2 pl-4 pr-3.5 ${
-            isOverdue ? "border-danger/50" : !task.done && task.priority === 1 ? "border-gold/50" : ""
-          }`}
+          className={`relative flex items-center gap-4 py-3.5 pr-4 pl-5 ${
+            swiped ? "paper-row-bg" : ""
+          } ${index > 0 ? "border-t border-paper-line/70" : ""}`}
         >
-          <span className={`absolute inset-y-0 left-0 w-1 ${priorityBarClass(task.priority)}`} />
+          {/* Штрих приоритета вместо цветной полосы — на бумаге цвет только «чернильный». */}
+          <span
+            className={`absolute inset-y-3 left-1.5 w-[3px] rounded-full ${
+              task.done ? "bg-ink/10" : PRIORITY_STROKE[task.priority]
+            }`}
+            aria-hidden="true"
+          />
 
           <button
             type="button"
@@ -176,36 +201,46 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             disabled={pendingId === task.id}
             aria-pressed={task.done}
             aria-label={task.done ? "Отметить как невыполненное" : "Отметить как выполненное"}
-            className={`glass-chip flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
-              task.done ? "border-gold bg-gold/15" : "border-white/25 bg-white/5 hover:border-white/45"
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50 ${
+              task.done
+                ? "border-ink-green bg-ink-green/12"
+                : isOverdue
+                  ? "border-ink-red/70 bg-paper/40"
+                  : "border-ink-soft/55 bg-paper/40 hover:border-ink-soft"
             }`}
           >
-            {task.done && <Check className="h-3.5 w-3.5 text-gold" strokeWidth={3} />}
+            {task.done && <Check className="h-4 w-4 text-ink-green" strokeWidth={3} />}
           </button>
 
           <button
             type="button"
             onClick={() => toggleDone(task)}
             disabled={pendingId === task.id}
-            className={`flex flex-1 flex-col items-start gap-0.5 text-left ${task.done ? "opacity-60" : ""}`}
+            className={`flex flex-1 flex-col items-start gap-1 text-left ${
+              task.done ? "opacity-55" : ""
+            }`}
           >
-            <span className={`text-sm font-medium leading-tight text-fg ${task.done ? "line-through" : ""}`}>
+            <span
+              className={`font-note text-[1.05rem] leading-tight font-bold text-ink ${
+                task.done ? "line-through" : ""
+              }`}
+            >
               {task.title}
             </span>
-            <span className="flex flex-wrap items-center gap-x-2 text-[11px] leading-tight">
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-1 font-note text-[0.8rem] leading-tight">
               {task.isNegative ? (
-                <span className="flex items-center gap-1 font-medium text-danger">
-                  <Skull className="h-3 w-3" />
+                <span className="flex items-center gap-1.5 font-bold text-ink-red">
+                  <Skull className="h-3.5 w-3.5" />
                   Плохая привычка
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-muted">
-                  <TypeIcon className="h-3 w-3" />
+                <span className="flex items-center gap-1.5 text-ink-soft">
+                  <TypeIcon className="h-3.5 w-3.5" />
                   {TYPE_META[task.type].label}
                 </span>
               )}
               {task.dueDate && (
-                <span className={isOverdue ? "font-medium text-danger" : "text-muted"}>
+                <span className={isOverdue ? "font-bold text-ink-red" : "text-ink-soft"}>
                   {isOverdue ? `Просрочено · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
                 </span>
               )}
@@ -217,16 +252,18 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             onClick={() => toggleFavorite(task)}
             disabled={pendingPriorityId === task.id}
             aria-pressed={task.priority === 1}
-            aria-label={task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"}
+            aria-label={
+              task.priority === 1 ? "Убрать высокий приоритет" : "Сделать высоким приоритетом"
+            }
             className="shrink-0 disabled:opacity-50"
           >
             <Star
-              className={`h-4.5 w-4.5 transition-colors ${
-                task.priority === 1 ? "fill-gold text-gold" : "text-muted hover:text-fg"
+              className={`h-5.5 w-5.5 transition-colors ${
+                task.priority === 1 ? "fill-ink-green/70 text-ink-green" : "text-ink-soft/70"
               }`}
+              strokeWidth={1.6}
             />
           </button>
-
         </div>
       </SwipeToDelete>
     );
@@ -235,22 +272,31 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   const sortLabel = SORTS.find((s) => s.value === sort)!.label;
 
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 overflow-y-auto px-5 pb-28 pt-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-fg">Задачи</h1>
+    <div className="paper-canvas relative flex h-full flex-col">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 overflow-y-auto px-5 pt-7 pb-32">
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Задачи</h1>
+            <p className="mt-1.5 font-note text-sm text-ink-soft">
+              Планируй день и достигай целей
+            </p>
+          </div>
+
           <button
             type="button"
             onClick={cycleSort}
             aria-label={`Сортировка: ${sortLabel}. Переключить`}
-            className="glass-soft flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:text-fg"
+            className="paper-sheet mt-1 shrink-0"
           >
-            <ArrowDownUp className="h-3.5 w-3.5" />
-            {sortLabel}
+            <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+            <span className="relative flex items-center gap-2 px-4 py-2 font-note text-sm text-ink">
+              <ArrowDownUp className="h-4 w-4 text-ink-soft" strokeWidth={2} />
+              {sortLabel}
+            </span>
           </button>
-        </div>
+        </header>
 
-        <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="-mx-1 flex items-center gap-3 overflow-x-auto px-1 pb-1.5">
           {FILTERS.map(({ value, label, icon: Icon }) => {
             const isActive = filter === value;
             return (
@@ -258,81 +304,111 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
-                className={`glass-soft flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  isActive ? "border-gold/60 bg-gold/15 text-gold" : "text-muted hover:text-fg"
-                }`}
+                className="paper-sheet shrink-0"
               >
-                {Icon && <Icon className="h-4 w-4" />}
-                {label}
+                <span
+                  className={`absolute inset-0 ${isActive ? "paper-chip-bg-olive" : "paper-chip-bg"}`}
+                  aria-hidden="true"
+                />
+                <span
+                  className={`relative flex items-center gap-2 px-4 py-2 font-note text-[0.95rem] ${
+                    isActive ? "font-bold text-ink" : "text-ink-soft"
+                  }`}
+                >
+                  {Icon && <Icon className="h-4 w-4" />}
+                  {label}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
           {groups.map(([category, categoryTasks]) => {
             const isCollapsed = collapsed[category];
             const doneCount = categoryTasks.filter((task) => task.done).length;
+            const activeTasks = categoryTasks.filter((task) => !task.done);
             return (
-              <div key={category} className="flex flex-col gap-2">
-                <button type="button" onClick={() => toggleCategory(category)} className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-base font-semibold text-fg">
-                    <span className={`h-2.5 w-2.5 rounded-full ${categoryDotColor(category)}`} />
+              <div key={category} className="flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => toggleCategory(category)}
+                  className="flex items-center justify-between px-1"
+                >
+                  <span className="flex items-baseline gap-2.5 font-hand text-2xl leading-none font-bold text-ink">
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 self-center rounded-full ${categoryDotClass(category)}`}
+                      aria-hidden="true"
+                    />
                     {category}
-                    <span className="text-xs font-normal text-muted">
+                    <span className="font-note text-[0.8rem] font-normal text-ink-soft">
                       {doneCount}/{categoryTasks.length}
                     </span>
                   </span>
-                  <ChevronDown className={`h-4 w-4 text-muted transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 text-ink-soft transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                  />
                 </button>
 
                 {!isCollapsed && (
-                  categoryTasks.some((task) => !task.done) ? (
-                    <ul className="flex flex-col gap-2">
-                      {categoryTasks.filter((task) => !task.done).map((task) => renderTaskRow(task))}
-                    </ul>
-                  ) : (
-                    <div className="glass-soft rounded-xl px-4 py-3 text-center text-xs text-muted">
-                      Все задачи категории выполнены
-                    </div>
-                  )
+                  <PaperSheet perforated innerClassName="pb-2">
+                    {activeTasks.length > 0 ? (
+                      <ul>{activeTasks.map((task, index) => renderTaskRow(task, index))}</ul>
+                    ) : (
+                      <p className="px-5 py-7 text-center font-note text-[0.95rem] text-ink-soft">
+                        Все задачи категории выполнены
+                      </p>
+                    )}
+                  </PaperSheet>
                 )}
               </div>
             );
           })}
 
           {groups.length === 0 && (
-            <div className="glass rounded-2xl p-6 text-center text-sm text-muted">
-              {tasks.length === 0 ? "Задач пока нет — добавь первую кнопкой «+»" : "В этом фильтре пока нет задач"}
-            </div>
+            <PaperSheet perforated innerClassName="pb-2">
+              <p className="px-6 py-8 text-center font-note text-[0.95rem] text-ink-soft">
+                {tasks.length === 0
+                  ? "Задач пока нет — добавь первую кнопкой «+»"
+                  : "В этом фильтре пока нет задач"}
+              </p>
+            </PaperSheet>
           )}
 
           {doneTasks.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <PaperSheet innerClassName="pb-1">
               <button
                 type="button"
                 onClick={() => setDoneOpen((prev) => !prev)}
-                className="glass-soft flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:text-fg"
+                className="flex w-full items-center justify-between px-5 py-3.5 font-note text-[0.95rem] text-ink-soft transition-colors hover:text-ink"
               >
                 <span>Выполнено {doneTasks.length}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${doneOpen ? "" : "-rotate-90"}`} />
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${doneOpen ? "" : "-rotate-90"}`}
+                />
               </button>
 
               {doneOpen && (
-                <ul className="flex flex-col gap-2">{doneTasks.map((task) => renderTaskRow(task))}</ul>
+                <ul className="border-t border-paper-line/70">
+                  {doneTasks.map((task, index) => renderTaskRow(task, index))}
+                </ul>
               )}
-            </div>
+            </PaperSheet>
           )}
         </div>
       </div>
 
+      {/* Кнопка добавления — оторванный кружок оливковой бумаги. */}
       <button
         type="button"
         onClick={() => setSheetOpen(true)}
         aria-label="Добавить задачу"
-        className="glass-gold absolute bottom-28 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
+        className="paper-sheet absolute right-4 bottom-28 z-5 h-14 w-14 transition-transform active:scale-95"
       >
-        <Plus className="h-6 w-6" strokeWidth={2.5} />
+        <span className="paper-chip-bg-olive absolute inset-0 rounded-full" aria-hidden="true" />
+        <span className="relative flex h-full w-full items-center justify-center">
+          <Plus className="h-6 w-6 text-ink" strokeWidth={2.5} />
+        </span>
       </button>
 
       {taskToDelete && (
