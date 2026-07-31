@@ -3,28 +3,23 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
-import { Lock, Mail } from "lucide-react";
+import { Check, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import { signInWithEmail, signUpWithEmail } from "@/lib/firebase/auth";
 
-function GemLogo() {
+/**
+ * Знак приложения на бумаге — печать с галочкой вместо золотого камня:
+ * весь трекер начинается с галочки, а золота в бумажной теме нет.
+ */
+function PaperStamp() {
   return (
-    <div className="relative flex h-28 w-28 items-center justify-center">
-      <div className="absolute h-24 w-24 rounded-full bg-gold/25 blur-2xl" />
-      <svg viewBox="0 0 100 100" className="relative h-20 w-20 drop-shadow-[0_4px_12px_rgba(212,175,55,0.35)]" aria-hidden="true">
-        <defs>
-          <linearGradient id="gemBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f3d27a" />
-            <stop offset="45%" stopColor="#d4af37" />
-            <stop offset="100%" stopColor="#9c7a1f" />
-          </linearGradient>
-        </defs>
-        <polygon points="50,4 92,38 50,96 8,38" fill="url(#gemBody)" />
-        <polygon points="50,4 68,32 50,52 32,32" fill="#f7e3a1" opacity="0.9" />
-        <polygon points="8,38 32,32 50,52 20,60" fill="#b8901f" opacity="0.55" />
-        <polygon points="92,38 68,32 50,52 80,60" fill="#8a6a18" opacity="0.5" />
-      </svg>
-    </div>
+    <span className="paper-sheet h-[72px] w-[72px]">
+      <span className="paper-chip-bg-olive absolute inset-0 rounded-full" aria-hidden="true" />
+      <span className="relative flex h-full w-full items-center justify-center">
+        <Check className="h-9 w-9 text-ink-green" strokeWidth={3} />
+      </span>
+    </span>
   );
 }
 
@@ -83,79 +78,96 @@ export default function LoginPage() {
   }
 
   return (
-    // Вход остался стеклянным — тёмный фон он несёт сам поверх бумажной оболочки.
-    <div className="dark-canvas flex h-full flex-col overflow-y-auto overscroll-contain px-6 pb-8">
-      <div className="flex flex-col items-center gap-3 pb-6 pt-8 text-center">
-        <GemLogo />
-        <h1 className="text-3xl font-extrabold tracking-tight text-fg">FokusTracker</h1>
-        <p className="max-w-[240px] text-[15px] leading-snug">
-          <span className="text-fg/80">Держи дисциплину. </span>
-          <span className="text-muted">Смотри, как растут цифры.</span>
-        </p>
-      </div>
+    <div className="paper-canvas flex h-full flex-col overflow-y-auto overscroll-contain px-6 pb-10">
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 py-8">
+        <header className="flex flex-col items-center gap-3 text-center">
+          <PaperStamp />
+          <h1 className="font-hand text-[3rem] leading-none font-bold text-ink">FokusTracker</h1>
+          <p className="max-w-[250px] font-note text-[0.95rem] leading-snug text-ink-soft">
+            Держи дисциплину. Смотри, как растёт серия.
+          </p>
+        </header>
 
-      <div className="flex flex-col gap-5 pb-2">
-        <div className="glass-soft flex items-center gap-1 rounded-2xl p-1">
-          {(["signin", "signup"] as const).map((id) => {
-            const isActive = id === mode;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setMode(id)}
-                className={`flex-1 rounded-xl py-2 text-sm font-medium transition-colors ${
-                  isActive ? "glass-chip bg-white/10 text-gold" : "text-muted hover:text-fg"
-                }`}
-              >
-                {id === "signin" ? "Вход" : "Регистрация"}
-              </button>
-            );
-          })}
-        </div>
+        <PaperSheet innerClassName="px-5 pt-6 pb-5">
+          {/* Лист «приклеен» скотчем по верхним углам — как карточки на других экранах. */}
+          <span
+            className="paper-tape absolute -top-2.5 -left-4 h-5 w-20 -rotate-[20deg]"
+            aria-hidden="true"
+          />
+          <span
+            className="paper-tape absolute -top-2.5 -right-4 h-5 w-20 rotate-[20deg]"
+            aria-hidden="true"
+          />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <label className="glass-field flex items-center gap-3 rounded-2xl px-4 py-3.5">
-            <Mail className="h-4 w-4 shrink-0 text-muted" />
-            <input
-              type="email"
-              placeholder="Почта"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-fg placeholder-muted outline-none"
-            />
-          </label>
-          <label className="glass-field flex items-center gap-3 rounded-2xl px-4 py-3.5">
-            <Lock className="h-4 w-4 shrink-0 text-muted" />
-            <input
-              type="password"
-              placeholder="Пароль"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-fg placeholder-muted outline-none"
-            />
-          </label>
+          <div className="flex items-center gap-2.5">
+            {(["signin", "signup"] as const).map((id) => {
+              const isActive = id === mode;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setMode(id)}
+                  className="paper-sheet flex-1"
+                >
+                  <span
+                    className={`absolute inset-0 ${isActive ? "paper-chip-bg-olive" : "paper-chip-bg"}`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={`relative block py-2 text-center font-note text-[0.95rem] ${
+                      isActive ? "font-bold text-ink" : "text-ink-soft"
+                    }`}
+                  >
+                    {id === "signin" ? "Вход" : "Регистрация"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-          {error && <p className="text-sm text-danger">{error}</p>}
+          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+            <label className="paper-field flex items-center gap-3 rounded-sm px-4 py-3">
+              <Mail className="h-4 w-4 shrink-0 text-ink-soft" />
+              <input
+                type="email"
+                placeholder="Почта"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-transparent font-note text-[1rem] text-ink outline-none placeholder:text-ink-soft"
+              />
+            </label>
+            <label className="paper-field flex items-center gap-3 rounded-sm px-4 py-3">
+              <Lock className="h-4 w-4 shrink-0 text-ink-soft" />
+              <input
+                type="password"
+                placeholder="Пароль"
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-transparent font-note text-[1rem] text-ink outline-none placeholder:text-ink-soft"
+              />
+            </label>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="glass-gold w-full rounded-2xl py-3.5 text-center text-[15px] font-semibold text-bg disabled:opacity-60"
-          >
-            {submitting
-              ? "Подождите…"
-              : mode === "signin"
-                ? "Войти"
-                : "Создать аккаунт"}
-          </button>
-        </form>
+            {error && <p className="font-note text-[0.85rem] font-bold text-ink-red">{error}</p>}
 
-        <p className="mt-1 text-center text-xs text-muted">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="paper-sheet mt-1 w-full transition-transform active:scale-[0.98] disabled:opacity-50"
+            >
+              <span className="paper-chip-bg-olive absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3.5 text-center font-note text-[1.05rem] font-bold text-ink">
+                {submitting ? "Подождите…" : mode === "signin" ? "Войти" : "Создать аккаунт"}
+              </span>
+            </button>
+          </form>
+        </PaperSheet>
+
+        <p className="text-center font-note text-xs leading-relaxed text-ink-soft">
           Твои данные приватны и принадлежат только тебе.
           <br />
           <a href="#" className="underline underline-offset-2">
