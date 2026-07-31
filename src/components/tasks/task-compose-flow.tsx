@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { ChevronLeft, Clock, Repeat, X, Zap } from "lucide-react";
+import { CalendarDays, ChevronLeft, Clock, Repeat, X, Zap } from "lucide-react";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { categoryDotColor } from "@/components/calendar/category-style";
 import { buildMonthGrid } from "@/lib/logic/calendar";
-import { fromDateKey } from "@/lib/logic/date";
+import { formatDayMonth, fromDateKey } from "@/lib/logic/date";
 import type { CalendarTaskSummary } from "@/types/calendar";
 import type { Log } from "@/types/log";
 import type { Priority, Task, TaskType } from "@/types/task";
@@ -75,6 +75,9 @@ export function TaskComposeFlow({
     return initialCursor;
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(initialDate);
+  // На шаг даты можно вернуться из «Деталей» — тогда после выбора идём обратно в форму,
+  // а не гоним пользователя заново через категорию.
+  const [returnToForm, setReturnToForm] = useState(false);
   const [category, setCategory] = useState<string | null>(null);
   const [customCategoryActive, setCustomCategoryActive] = useState(false);
   const [customCategory, setCustomCategory] = useState("");
@@ -96,7 +99,7 @@ export function TaskComposeFlow({
     [categories],
   );
 
-  const isFirstStep = step === (skipDateStep ? "category" : "date");
+  const isFirstStep = step === (skipDateStep ? "category" : "date") && !returnToForm;
 
   function changeMonth(delta: number) {
     setCursor(({ year, month }) => {
@@ -106,8 +109,17 @@ export function TaskComposeFlow({
   }
 
   function goBack() {
-    if (step === "form") setStep("category");
+    if (step === "date" && returnToForm) {
+      setReturnToForm(false);
+      setStep("form");
+    } else if (step === "form") setStep("category");
     else if (step === "category" && !skipDateStep) setStep("date");
+  }
+
+  function pickDate(date: string | null) {
+    setSelectedDate(date);
+    setStep(returnToForm ? "form" : "category");
+    setReturnToForm(false);
   }
 
   function chooseCategory(next: string | null) {
@@ -131,7 +143,9 @@ export function TaskComposeFlow({
       priority,
       isNegative: type === "habit" && isNegative,
       schedule: [],
-      dueDate: isRecurring ? null : (selectedDate ?? todayKey),
+      // Дедлайн ставится, только если пользователь сам выбрал день: «Без конкретного дня»
+      // означает задачу без срока, а не задачу на сегодня.
+      dueDate: isRecurring ? null : selectedDate,
     });
   }
 
@@ -167,22 +181,11 @@ export function TaskComposeFlow({
               onNext={() => changeMonth(1)}
             />
             <div className="mt-3">
-              <CalendarGrid
-                compact
-                grid={grid}
-                selectedDate={selectedDate}
-                onSelectDate={(date) => {
-                  setSelectedDate(date);
-                  setStep("category");
-                }}
-              />
+              <CalendarGrid compact grid={grid} selectedDate={selectedDate} onSelectDate={pickDate} />
             </div>
             <button
               type="button"
-              onClick={() => {
-                setSelectedDate(null);
-                setStep("category");
-              }}
+              onClick={() => pickDate(null)}
               className="glass-soft mt-3 w-full rounded-xl px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:text-fg"
             >
               Без конкретного дня
@@ -281,6 +284,38 @@ export function TaskComposeFlow({
                 ))}
               </div>
             </div>
+
+            {/* Срок есть только у разовых задач — у ежедневок и привычек его заменяет расписание. */}
+            {type === "once" && (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-muted">Срок</span>
+                <div className="glass-soft flex items-center gap-2.5 rounded-xl px-4 py-3">
+                  <CalendarDays className="h-4 w-4 shrink-0 text-muted" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReturnToForm(true);
+                      setStep("date");
+                    }}
+                    className={`min-w-0 flex-1 truncate text-left text-sm font-medium ${
+                      selectedDate ? "text-fg" : "text-muted"
+                    }`}
+                  >
+                    {selectedDate ? formatDayMonth(selectedDate) : "Без срока"}
+                  </button>
+                  {selectedDate && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDate(null)}
+                      aria-label="Убрать срок"
+                      className="shrink-0 text-muted transition-colors hover:text-fg"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium text-muted">Приоритет</span>

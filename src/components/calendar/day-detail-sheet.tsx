@@ -2,7 +2,6 @@
 
 import { Check, Plus, X } from "lucide-react";
 import type { CalendarTaskSummary } from "@/types/calendar";
-import { xpForCompletion } from "@/lib/logic/xp";
 import { categoryBadgeClass, priorityBadgeClass } from "./category-style";
 
 const WEEKDAY_NAMES = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
@@ -29,13 +28,15 @@ function formatDateLabel(dateKey: string): string {
 interface DayDetailSheetProps {
   dateKey: string;
   tasks: CalendarTaskSummary[];
-  totalXP: number;
   onClose: () => void;
   onToggleTask: (taskId: string) => void;
   onAddTaskClick: () => void;
 }
 
-export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask, onAddTaskClick }: DayDetailSheetProps) {
+export function DayDetailSheet({ dateKey, tasks, onClose, onToggleTask, onAddTaskClick }: DayDetailSheetProps) {
+  const done = tasks.filter((task) => task.done).length;
+  const percent = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+
   return (
     <>
       <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
@@ -47,11 +48,13 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
           <div>
             <h2 className="text-lg font-bold text-fg">{formatDateLabel(dateKey)}</h2>
             <p className="text-sm text-muted">
-              {tasks.length} задач ·{" "}
-              <span className={totalXP >= 0 ? "text-gold" : "text-danger"}>
-                {totalXP >= 0 ? "+" : ""}
-                {totalXP} XP
-              </span>
+              {tasks.length > 0 ? (
+                <>
+                  {done} из {tasks.length} · <span className="text-gold">{percent}%</span> плана
+                </>
+              ) : (
+                "Плана на этот день нет"
+              )}
             </p>
           </div>
           <button
@@ -66,7 +69,6 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
 
         <ul className="flex flex-col gap-2.5">
           {tasks.map((task) => {
-            const xp = xpForCompletion(task, true);
             return (
               <li
                 key={task.taskId}
@@ -101,10 +103,6 @@ export function DayDetailSheet({ dateKey, tasks, totalXP, onClose, onToggleTask,
                   className={`glass-chip shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${categoryBadgeClass(task.category)}`}
                 >
                   {task.category}
-                </span>
-                <span className={`shrink-0 text-xs font-bold ${xp >= 0 ? "text-gold" : "text-danger"}`}>
-                  {xp >= 0 ? "+" : ""}
-                  {xp} XP
                 </span>
               </li>
             );

@@ -5,7 +5,8 @@ export interface Log {
   taskId: string;
   date: string;
   type: TaskType;
-  xp: number;
+  /** Срыв плохой привычки, а не выполнение — единственное «отрицательное» событие. */
+  isNegative: boolean;
   onTime: boolean;
   createdAt: number;
 }

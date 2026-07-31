@@ -1,17 +1,18 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
   query,
   runTransaction,
+  setDoc,
   updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-import { xpForCompletion, levelFromXP } from "@/lib/logic/xp";
 import { updateStreakOnCompletion } from "@/lib/logic/streak";
 import { toDateKey, weekdayLabel } from "@/lib/logic/date";
 import type { Priority, Task } from "@/types/task";
@@ -37,8 +38,13 @@ function completionLogRef(uid: string, taskId: string, dateKey: string) {
   return doc(db, "users", uid, "logs", `${taskId}_${dateKey}`);
 }
 
+/**
+ * Разовая задача без срока — бэклог «сделать когда-нибудь»: висит в списке на сегодня,
+ * пока не закрыта, но в план дня не входит (см. `plannedOnDay`), поэтому не может
+ * оказаться просроченной или испортить % выполнения.
+ */
 function isRelevantToday(task: Task, todayKey: string, todayLabel: string): boolean {
-  if (task.type === "once") return task.dueDate === todayKey;
+  if (task.type === "once") return task.dueDate ? task.dueDate === todayKey : !task.done;
   return task.schedule.length === 0 || task.schedule.includes(todayLabel);
 }
 
@@ -82,16 +88,13 @@ export async function createTask(
 }
 
 /**
- * Полностью удаляет задачу: сам документ, все её логи и XP, начисленный за них.
- * Логи чистим пачками (в одну транзакцию/батч Firestore влезает 500 операций),
- * а списание XP и удаление самой задачи делаем транзакцией, чтобы totalXP/level
- * не разъехались при гонке с отметкой другой задачи.
+ * Полностью удаляет задачу вместе со всей её историей выполнений.
+ * Логи чистим пачками — в один батч Firestore влезает 500 операций.
  * Стрик не пересчитываем: он отражает факт активности в день, а не конкретную задачу.
  */
 export async function deleteTask(uid: string, taskId: string): Promise<void> {
   const logsSnap = await getDocs(query(logsCollection(uid), where("taskId", "==", taskId)));
   const logIds = logsSnap.docs.map((d) => d.id);
-  const xpToRevoke = logsSnap.docs.reduce((sum, d) => sum + ((d.data().xp as number) ?? 0), 0);
 
   const CHUNK = 400;
   for (let i = 0; i < logIds.length; i += CHUNK) {
@@ -102,16 +105,7 @@ export async function deleteTask(uid: string, taskId: string): Promise<void> {
     await batch.commit();
   }
 
-  await runTransaction(db, async (tx) => {
-    const uRef = userRef(uid);
-    const userSnap = await tx.get(uRef);
-    if (!userSnap.exists()) throw new Error("Пользователь не найден");
-    const user = userSnap.data() as Omit<FokusUser, "uid">;
-    const newTotalXP = user.totalXP - xpToRevoke;
-
-    tx.delete(taskRef(uid, taskId));
-    tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
-  });
+  await deleteDoc(taskRef(uid, taskId));
 }
 
 /**
@@ -127,33 +121,29 @@ export async function setTaskCompletionForDate(
   done: boolean,
 ): Promise<void> {
   const logRef = completionLogRef(uid, task.id, dateKey);
-  const uRef = userRef(uid);
 
-  await runTransaction(db, async (tx) => {
-    const [userSnap, logSnap] = await Promise.all([tx.get(uRef), tx.get(logRef)]);
-    if (!userSnap.exists()) throw new Error("Пользователь не найден");
-    const user = userSnap.data() as Omit<FokusUser, "uid">;
-
-    if (done) {
-      if (logSnap.exists()) return;
-      const xp = xpForCompletion(task, true);
-      const newTotalXP = user.totalXP + xp;
-      tx.set(logRef, { taskId: task.id, date: dateKey, type: task.type, xp, onTime: true, createdAt: Date.now() });
-      tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
-    } else {
-      if (!logSnap.exists()) return;
-      const xp = logSnap.data().xp as number;
-      const newTotalXP = user.totalXP - xp;
-      tx.delete(logRef);
-      tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
-    }
-  });
+  if (done) {
+    await setDoc(
+      logRef,
+      {
+        taskId: task.id,
+        date: dateKey,
+        type: task.type,
+        isNegative: task.isNegative,
+        onTime: true,
+        createdAt: Date.now(),
+      },
+      // Отметка задним числом идемпотентна: повторный клик не должен плодить логи.
+      { merge: true },
+    );
+  } else {
+    await deleteDoc(logRef);
+  }
 }
 
 export async function completeTask(uid: string, task: Task): Promise<void> {
   const todayKey = toDateKey(new Date());
   const onTime = task.type !== "once" || !task.dueDate || task.dueDate >= todayKey;
-  const xp = xpForCompletion(task, onTime);
 
   await runTransaction(db, async (tx) => {
     const uRef = userRef(uid);
@@ -161,7 +151,6 @@ export async function completeTask(uid: string, task: Task): Promise<void> {
     if (!userSnap.exists()) throw new Error("Пользователь не найден");
     const user = userSnap.data() as Omit<FokusUser, "uid">;
 
-    const newTotalXP = user.totalXP + xp;
     const streak = updateStreakOnCompletion(
       {
         currentStreak: user.currentStreak,
@@ -175,14 +164,12 @@ export async function completeTask(uid: string, task: Task): Promise<void> {
       taskId: task.id,
       date: todayKey,
       type: task.type,
-      xp,
+      isNegative: task.isNegative,
       onTime,
       createdAt: Date.now(),
     });
     tx.update(taskRef(uid, task.id), { done: true, doneAt: Date.now() });
     tx.update(uRef, {
-      totalXP: newTotalXP,
-      level: levelFromXP(newTotalXP),
       currentStreak: streak.currentStreak,
       longestStreak: streak.longestStreak,
       lastActiveDate: streak.lastActiveDate,
@@ -192,18 +179,10 @@ export async function completeTask(uid: string, task: Task): Promise<void> {
 
 export async function uncompleteTask(uid: string, task: Task): Promise<void> {
   const todayKey = toDateKey(new Date());
-  const logRef = completionLogRef(uid, task.id, todayKey);
 
-  await runTransaction(db, async (tx) => {
-    const uRef = userRef(uid);
-    const [userSnap, logSnap] = await Promise.all([tx.get(uRef), tx.get(logRef)]);
-    if (!userSnap.exists()) throw new Error("Пользователь не найден");
-    const user = userSnap.data() as Omit<FokusUser, "uid">;
-    const xp = logSnap.exists() ? (logSnap.data().xp as number) : 0;
-    const newTotalXP = user.totalXP - xp;
-
-    if (logSnap.exists()) tx.delete(logRef);
-    tx.update(taskRef(uid, task.id), { done: false, doneAt: null });
-    tx.update(uRef, { totalXP: newTotalXP, level: levelFromXP(newTotalXP) });
-  });
+  // Стрик не откатываем: он про факт активности в день, а не про конкретную галочку.
+  await Promise.all([
+    deleteDoc(completionLogRef(uid, task.id, todayKey)),
+    updateDoc(taskRef(uid, task.id), { done: false, doneAt: null }),
+  ]);
 }

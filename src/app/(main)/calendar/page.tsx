@@ -84,9 +84,6 @@ export default function CalendarPage() {
   if (!user) return null;
 
   const selectedTasks = selectedDate ? (tasksByDate[selectedDate] ?? []) : [];
-  const selectedXP = selectedDate
-    ? (logsByDate[selectedDate] ?? []).reduce((sum, log) => sum + log.xp, 0)
-    : 0;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -110,7 +107,6 @@ export default function CalendarPage() {
         <DayDetailSheet
           dateKey={selectedDate}
           tasks={selectedTasks}
-          totalXP={selectedXP}
           onClose={() => setSelectedDate(null)}
           onToggleTask={(taskId) => {
             const summary = selectedTasks.find((task) => task.taskId === taskId);

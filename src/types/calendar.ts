@@ -19,7 +19,9 @@ export interface CalendarDayCell {
   status: DayCellStatus;
   tasks: CalendarTaskSummary[];
   hiddenCount: number;
-  totalXP: number;
+  /** Логи дня: сколько задач закрыто и сколько раз сорвалась плохая привычка. */
+  done: number;
+  lapses: number;
 }
 
 export interface MonthGrid {

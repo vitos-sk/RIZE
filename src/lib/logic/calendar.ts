@@ -50,7 +50,8 @@ export function buildMonthGrid(
     const date = new Date(`${dateKey}T00:00:00.000Z`);
     const dayLogs = logsByDate[dateKey] ?? [];
     const tasks = tasksByDate[dateKey] ?? [];
-    const totalXP = dayLogs.reduce((sum, log) => sum + log.xp, 0);
+    const lapses = dayLogs.filter((log) => log.isNegative).length;
+    const done = dayLogs.length - lapses;
 
     const isCurrentMonth = date.getUTCMonth() === month && date.getUTCFullYear() === year;
     const isToday = dateKey === todayKey;
@@ -62,7 +63,8 @@ export function buildMonthGrid(
     } else if (isToday) {
       status = "today";
     } else if (dayLogs.length > 0) {
-      status = totalXP >= 0 ? "completed" : "missed";
+      // День «сорван», только если срывов было больше, чем выполнений.
+      status = lapses > done ? "missed" : "completed";
     }
 
     cells.push({
@@ -73,7 +75,8 @@ export function buildMonthGrid(
       status,
       tasks: tasks.slice(0, 5),
       hiddenCount: Math.max(0, tasks.length - 5),
-      totalXP,
+      done,
+      lapses,
     });
   }
 

@@ -5,8 +5,7 @@ import { shiftKey } from "@/lib/logic/period";
 
 /**
  * Фундамент всей аналитики: «сколько задача должна была быть выполнена» против
- * «сколько реально закрыто». XP в этих расчётах не участвует — он остаётся игровой
- * механикой профиля, а статистика говорит только о дисциплине выполнения.
+ * «сколько реально закрыто». Единица измерения везде одна — процент выполнения плана.
  */
 
 export interface DayStat {
@@ -67,7 +66,7 @@ export function plannedOccurrences(task: Task, fromKey: string, toKey: string): 
 
 /**
  * Разбирает окно по дням: план — по расписанию задач, факт — по логам.
- * Задача могла быть удалена (лог остаётся), поэтому знак XP — фолбэк для «срыв или нет».
+ * Задача могла быть удалена (лог остаётся), поэтому фолбэк — флаг самого лога.
  */
 export function buildDayStats(
   tasks: Task[],
@@ -93,7 +92,7 @@ export function buildDayStats(
     const stat = stats.get(log.date);
     if (!stat) continue;
     const task = taskById.get(log.taskId);
-    const isLapse = task ? task.isNegative : log.xp < 0;
+    const isLapse = task ? task.isNegative : log.isNegative;
     if (isLapse) {
       stat.lapses++;
       continue;

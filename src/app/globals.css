@@ -15,6 +15,22 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Бумажная тема (пока только Главная + таб-бар): крафтовый лист, карандаш и
+     три «чернильных» цвета — зелёный, красный, индиго. Живёт отдельно от
+     тёмного стекла: остальные экраны продолжают пользоваться палитрой выше. */
+  --color-paper: #f4efe3;
+  --color-paper-deep: #e7e0cd;
+  --color-paper-line: #cfc5ad;
+  --color-ink: #35302a;
+  --color-ink-soft: #8b8275;
+  --color-ink-green: #4b7a45;
+  --color-ink-red: #b4453f;
+  --color-ink-indigo: #4a45a5;
+  --color-olive: #adb18f;
+
+  --font-hand: var(--font-caveat);
+  --font-note: var(--font-neucha);
 }
 
 /* Матовое стекло: единые токены на все поверхности приложения. */
@@ -25,6 +41,10 @@
   --glass-edge: rgb(255 255 255 / 0.12);
   --glass-highlight: rgb(255 255 255 / 0.1);
   --glass-shadow: 0 12px 34px -16px rgb(0 0 0 / 0.8);
+
+  /* Зерно бумаги: одна SVG-текстура шума, накладывается background-blend-mode:
+     multiply — поэтому светлые пиксели прозрачны, а тёмные дают крапинки. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
 }
 
 html {
@@ -171,6 +191,93 @@ textarea,
     -webkit-backdrop-filter: blur(12px) saturate(160%);
     border: 1px solid rgb(255 226 140 / 0.5);
     box-shadow: 0 12px 30px -12px rgb(212 175 55 / 0.55), inset 0 1px 0 0 rgb(255 255 255 / 0.35);
+  }
+
+  /* ─── Бумага ───────────────────────────────────────────────────────────────
+     Лист, скотч и перфорация Главной. Рваные края даёт SVG-фильтр
+     (<PaperDefs/> в (main)/layout.tsx): он смещает пиксели по шуму, поэтому
+     вешать его можно ТОЛЬКО на пустой фоновый слой — текст под ним поплывёт.
+     Отсюда пара «.paper-sheet (позиционирование) + .paper-sheet-bg (фон)». */
+
+  .paper-canvas {
+    background-color: #e8e1cf;
+    background-image:
+      var(--paper-grain),
+      radial-gradient(130% 90% at 50% -10%, rgb(255 255 255 / 0.55), transparent 62%),
+      radial-gradient(120% 70% at 50% 110%, rgb(140 126 96 / 0.22), transparent 60%);
+    background-blend-mode: multiply, normal, normal;
+    color: var(--color-ink);
+  }
+
+  .paper-sheet {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Фоновый слой листа: цвет + зерно + рваный контур. */
+  .paper-sheet-bg {
+    background-color: var(--color-paper);
+    background-image:
+      var(--paper-grain),
+      linear-gradient(165deg, rgb(255 255 255 / 0.55), rgb(214 203 176 / 0.35));
+    background-blend-mode: multiply, normal;
+    box-shadow:
+      0 10px 18px -12px rgb(72 60 38 / 0.55),
+      0 2px 4px -2px rgb(72 60 38 / 0.35);
+    filter: url(#paper-torn);
+  }
+
+  /* Мелкие поверхности (чипы, кнопки, ярлыки) — тот же приём, но край спокойнее. */
+  .paper-chip-bg {
+    background-color: var(--color-paper);
+    background-image:
+      var(--paper-grain),
+      linear-gradient(170deg, rgb(255 255 255 / 0.6), rgb(214 203 176 / 0.4));
+    background-blend-mode: multiply, normal;
+    box-shadow: 0 4px 8px -5px rgb(72 60 38 / 0.6);
+    filter: url(#paper-torn-soft);
+  }
+
+  /* Приклеенный кусок оливковой бумаги: активная вкладка и активный период. */
+  .paper-chip-bg-olive {
+    background-color: var(--color-olive);
+    background-image:
+      var(--paper-grain),
+      linear-gradient(170deg, rgb(255 255 255 / 0.35), rgb(120 124 92 / 0.35));
+    background-blend-mode: multiply, normal;
+    box-shadow: 0 5px 10px -6px rgb(60 58 32 / 0.7);
+    filter: url(#paper-torn-soft);
+  }
+
+  /* Полоска скотча: полупрозрачная, чуть темнее бумаги, с рваными торцами. */
+  .paper-tape {
+    background-image: linear-gradient(
+      100deg,
+      rgb(226 216 190 / 0.75),
+      rgb(244 238 222 / 0.55) 35%,
+      rgb(214 202 172 / 0.7)
+    );
+    box-shadow: 0 1px 3px -1px rgb(72 60 38 / 0.35);
+    filter: url(#paper-torn-soft);
+  }
+
+  /* Отверстие перфорации: вырез до фона страницы, край подсвечен снизу. */
+  .paper-hole {
+    background-color: #e2dac6;
+    box-shadow:
+      inset 0 2px 3px rgb(72 60 38 / 0.45),
+      0 1px 0 rgb(255 255 255 / 0.75);
+  }
+
+  .paper-line {
+    background-color: var(--color-paper-line);
+  }
+
+  /* Непрозрачная подложка строки списка на время свайпа — тот же лист, без грани. */
+  .paper-row-bg {
+    background-color: var(--color-paper);
+    background-image: var(--paper-grain);
+    background-blend-mode: multiply;
   }
 }
 

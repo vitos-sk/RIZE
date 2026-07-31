@@ -35,7 +35,7 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
           }
 
           const isSelected = cell.date === selectedDate;
-          // Заполненный день — золотом (заработан XP), провал — красным, будущее гасим.
+          // День с выполнением — золотом, провал — красным, будущее гасим.
           // Сегодня/выбранный различаются силой грани, поэтому золото не путается.
           const statusClasses =
             cell.status === "completed"

@@ -7,7 +7,6 @@ import { categoryDotColor, priorityBarClass } from "@/components/calendar/catego
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import { fromDateKey } from "@/lib/logic/date";
-import { xpForCompletion } from "@/lib/logic/xp";
 import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
 import type { Task, TaskType } from "@/types/task";
@@ -156,7 +155,6 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   function renderTaskRow(task: Task) {
     const TypeIcon = TYPE_META[task.type].icon;
     const isOverdue = !task.done && task.type === "once" && !!task.dueDate && task.dueDate < todayKey;
-    const xp = xpForCompletion(task, !isOverdue);
     return (
       <SwipeToDelete
         key={task.id}
@@ -229,13 +227,6 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             />
           </button>
 
-          <span
-            className={`shrink-0 text-[11px] font-bold ${xp < 0 ? "text-danger" : "text-gold"} ${
-              task.done ? "opacity-60" : ""
-            }`}
-          >
-            {xp > 0 ? `+${xp}` : xp} XP
-          </span>
         </div>
       </SwipeToDelete>
     );
@@ -347,7 +338,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       {taskToDelete && (
         <ConfirmDialog
           title={`Удалить «${taskToDelete.title}»?`}
-          description="Задача и вся её история выполнений удалятся навсегда, начисленный за неё XP спишется."
+          description="Задача и вся её история выполнений удалятся навсегда — статистика пересчитается без неё."
           confirmLabel="Удалить"
           pending={deleting}
           onConfirm={confirmDelete}

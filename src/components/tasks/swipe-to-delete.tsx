@@ -14,13 +14,22 @@ interface SwipeToDeleteProps {
   onOpenChange: (open: boolean) => void;
   onDelete: () => void;
   label: string;
+  /** Оформление кнопки удаления: тёмное стекло или бумага (Главная). */
+  tone?: "glass" | "paper";
 }
 
 /**
  * Обёртка строки списка: тянем влево — из-под карточки выезжает кнопка удаления.
  * Вертикальный скролл отдаём браузеру (touch-action: pan-y), горизонтальный ведём сами.
  */
-export function SwipeToDelete({ children, open, onOpenChange, onDelete, label }: SwipeToDeleteProps) {
+export function SwipeToDelete({
+  children,
+  open,
+  onOpenChange,
+  onDelete,
+  label,
+  tone = "glass",
+}: SwipeToDeleteProps) {
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const gesture = useRef<{ startX: number; startY: number; startOffset: number; axis: "x" | "y" | null } | null>(null);
@@ -92,7 +101,11 @@ export function SwipeToDelete({ children, open, onOpenChange, onDelete, label }:
           type="button"
           onClick={onDelete}
           aria-label={label}
-          className="glass absolute inset-y-0 right-0 flex w-[76px] items-center justify-center rounded-xl border-danger/50 bg-danger/20 text-danger transition-colors active:bg-danger/30"
+          className={`absolute inset-y-0 right-0 flex w-[76px] items-center justify-center rounded-xl transition-colors ${
+            tone === "paper"
+              ? "bg-ink-red/15 text-ink-red active:bg-ink-red/25"
+              : "glass border-danger/50 bg-danger/20 text-danger active:bg-danger/30"
+          }`}
         >
           <Trash2 className="h-5 w-5" />
         </button>

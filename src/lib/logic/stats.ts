@@ -140,7 +140,7 @@ function buildBuckets(
     const doneLogs = logs.filter((log) => {
       if (log.date !== anchorKey) return false;
       const task = taskById.get(log.taskId);
-      return task ? !task.isNegative : log.xp >= 0;
+      return task ? !task.isNegative : !log.isNegative;
     });
 
     let cumulative = 0;

@@ -21,8 +21,8 @@ import { shiftKey } from "@/lib/logic/period";
 
 /**
  * Профиль — это досье по дисциплине за всё время: карта года, ритм недели, часы пик
- * и надёжность каждой задачи. XP здесь не участвует ни в одной цифре: игровая механика
- * живёт в календаре, а профиль отвечает на вопрос «как я работаю на самом деле».
+ * и надёжность каждой задачи. Всё меряется процентом выполнения плана — других
+ * единиц в приложении нет.
  */
 
 const MS_PER_DAY = 86_400_000;
@@ -262,10 +262,10 @@ export function buildProfileInsights(
   const fromKey = startKey > limitKey ? startKey : limitKey;
 
   const taskById = new Map(tasks.map((task) => [task.id, task]));
-  // Задачу могли удалить (лог остаётся), поэтому знак XP — фолбэк для «срыв или нет».
+  // Задачу могли удалить (лог остаётся), поэтому фолбэк — флаг самого лога.
   const completions = logs.filter((log) => {
     const task = taskById.get(log.taskId);
-    return task ? !task.isNegative : log.xp >= 0;
+    return task ? !task.isNegative : !log.isNegative;
   });
 
   const days = buildDayStats(tasks, logs, fromKey, todayKey);

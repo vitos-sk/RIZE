@@ -14,12 +14,9 @@ export async function ensureUserDoc(uid: string, displayName: string): Promise<v
   const newUser: Omit<FokusUser, "uid"> = {
     displayName,
     createdAt: Date.now(),
-    totalXP: 0,
-    level: 0,
     currentStreak: 0,
     longestStreak: 0,
     lastActiveDate: null,
-    gold: 0,
   };
   await setDoc(ref, newUser);
 }
