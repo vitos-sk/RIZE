@@ -50,7 +50,7 @@ export function EditProfileSheet({ initialName, onClose, onSave }: EditProfileSh
       <div className="paper-sheet absolute inset-x-0 bottom-0 z-40 flex max-h-[85%] flex-col">
         <div className="paper-sheet-bg absolute inset-0 rounded-t-[3px]" aria-hidden="true" />
 
-        <div className="relative overflow-y-auto px-5 pt-3 pb-6">
+        <div className="relative min-h-0 overflow-y-auto px-5 pt-3 pb-6">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
           <div className="mb-5 flex items-center justify-between">

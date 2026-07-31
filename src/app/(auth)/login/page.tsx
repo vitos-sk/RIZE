@@ -78,7 +78,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="paper-canvas flex h-full flex-col overflow-y-auto overscroll-contain px-6 pb-10">
+    <div className="paper-canvas flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain px-6 pb-10">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 py-8">
         <header className="flex flex-col items-center gap-3 text-center">
           <PaperStamp />

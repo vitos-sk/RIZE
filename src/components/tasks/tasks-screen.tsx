@@ -259,7 +259,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
 
   return (
     <div className="paper-canvas relative flex h-full flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 overflow-y-auto px-5 pt-7 pb-32">
+      <div className="mx-auto flex w-full max-w-md min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-7 pb-32">
         <header className="flex items-start justify-between gap-3">
           <div>
             <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Задачи</h1>
