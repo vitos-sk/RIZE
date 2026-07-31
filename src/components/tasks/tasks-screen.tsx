@@ -5,11 +5,12 @@ import { ArrowDownUp, Check, ChevronDown, Clock, Plus, Repeat, Skull, Star, Zap 
 import type { ComponentType } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PaperSheet } from "@/components/ui/paper-sheet";
+import { paperCategoryDot, paperPriorityStroke } from "@/components/ui/paper-style";
 import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import { fromDateKey } from "@/lib/logic/date";
 import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
-import type { Priority, Task, TaskType } from "@/types/task";
+import type { Task, TaskType } from "@/types/task";
 
 type Filter = "all" | TaskType;
 type Sort = "priority" | "due" | "title";
@@ -41,23 +42,9 @@ const SORTS: { value: Sort; label: string }[] = [
 
 const SUGGESTED_CATEGORIES = ["Работа", "Спорт", "Учёба", "Здоровье"];
 
-// Приоритет на бумаге — нажим карандаша: P1 чёрный штрих, P4 еле заметный.
-const PRIORITY_STROKE: Record<Priority, string> = {
-  1: "bg-ink/55",
-  2: "bg-ink/35",
-  3: "bg-ink/20",
-  4: "bg-ink/10",
-};
-
 function formatDue(dateKey: string): string {
   const [year, month, day] = dateKey.split("-");
   return `${day}.${month}.${year.slice(2)}`;
-}
-
-/** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
-function categoryDotClass(category: string): string {
-  const empty = !category || category.toLowerCase() === "без категории";
-  return empty ? "bg-ink-soft/60" : "bg-ink-green";
 }
 
 function compareTasks(sort: Sort, a: Task, b: Task): number {
@@ -190,7 +177,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           {/* Штрих приоритета вместо цветной полосы — на бумаге цвет только «чернильный». */}
           <span
             className={`absolute inset-y-3 left-1.5 w-[3px] rounded-full ${
-              task.done ? "bg-ink/10" : PRIORITY_STROKE[task.priority]
+              task.done ? "bg-ink/10" : paperPriorityStroke(task.priority)
             }`}
             aria-hidden="true"
           />
@@ -296,7 +283,11 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
           </button>
         </header>
 
-        <div className="-mx-1 flex items-center gap-3 overflow-x-auto px-1 pb-1.5">
+        {/* shrink-0 обязателен: у горизонтального скролла overflow не visible, поэтому
+            min-height: auto отключается и флекс-колонка сжимает бар, срезая чипы.
+            Вертикальный воздух (-my-1.5 / py-1.5) — под рваный край и тень чипов,
+            которые overflow-x: auto иначе обрезает по вертикали. */}
+        <div className="-mx-1 -my-1.5 flex shrink-0 items-center gap-3 overflow-x-auto px-1 py-1.5">
           {FILTERS.map(({ value, label, icon: Icon }) => {
             const isActive = filter === value;
             return (
@@ -337,7 +328,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                 >
                   <span className="flex items-baseline gap-2.5 font-hand text-2xl leading-none font-bold text-ink">
                     <span
-                      className={`h-2.5 w-2.5 shrink-0 self-center rounded-full ${categoryDotClass(category)}`}
+                      className={`h-2.5 w-2.5 shrink-0 self-center rounded-full ${paperCategoryDot(category)}`}
                       aria-hidden="true"
                     />
                     {category}

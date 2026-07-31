@@ -5,6 +5,7 @@ import type { ComponentType } from "react";
 import { CalendarDays, ChevronLeft, Clock, Repeat, X, Zap } from "lucide-react";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
+import { paperCategoryDot, paperPriorityDot } from "@/components/ui/paper-style";
 import { buildMonthGrid } from "@/lib/logic/calendar";
 import { formatDayMonth, fromDateKey } from "@/lib/logic/date";
 import type { CalendarTaskSummary } from "@/types/calendar";
@@ -34,19 +35,7 @@ const TYPE_OPTIONS: { value: TaskType; label: string; icon: ComponentType<{ clas
   { value: "habit", label: "Привычка", icon: Zap },
 ];
 
-// Приоритет на бумаге — нажим карандаша: P1 почти чёрный, P4 еле касается листа.
-const PRIORITY_OPTIONS: { value: Priority; dot: string }[] = [
-  { value: 1, dot: "bg-ink/70" },
-  { value: 2, dot: "bg-ink/45" },
-  { value: 3, dot: "bg-ink/25" },
-  { value: 4, dot: "bg-ink/12" },
-];
-
-/** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
-function categoryDotClass(category: string): string {
-  const empty = !category || category.toLowerCase() === "без категории";
-  return empty ? "bg-ink-soft/60" : "bg-ink-green";
-}
+const PRIORITY_OPTIONS: Priority[] = [1, 2, 3, 4];
 
 interface TaskComposeFlowProps {
   categories: string[];
@@ -187,7 +176,6 @@ export function TaskComposeFlow({
           {step === "date" && (
             <div>
               <CalendarHeader
-                tone="paper"
                 year={cursor.year}
                 month={cursor.month}
                 onPrev={() => changeMonth(-1)}
@@ -213,7 +201,7 @@ export function TaskComposeFlow({
                     <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
                     <span className="relative flex w-full items-center gap-2.5 px-4 py-3 text-left font-note text-[1rem] text-ink">
                       <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${categoryDotClass(cat)}`}
+                        className={`h-2 w-2 shrink-0 rounded-full ${paperCategoryDot(cat)}`}
                         aria-hidden="true"
                       />
                       {cat}
@@ -357,7 +345,7 @@ export function TaskComposeFlow({
               <div className="flex flex-col gap-2.5">
                 <span className="font-note text-xs text-ink-soft">Приоритет</span>
                 <div className="flex items-center gap-3">
-                  {PRIORITY_OPTIONS.map(({ value, dot }) => (
+                  {PRIORITY_OPTIONS.map((value) => (
                     <button
                       key={value}
                       type="button"
@@ -369,7 +357,7 @@ export function TaskComposeFlow({
                       }`}
                     >
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-paper/70">
-                        <span className={`h-3 w-3 rounded-full ${dot}`} />
+                        <span className={`h-3 w-3 rounded-full ${paperPriorityDot(value)}`} />
                       </span>
                     </button>
                   ))}

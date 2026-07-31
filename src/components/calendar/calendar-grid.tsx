@@ -1,5 +1,5 @@
 import type { MonthGrid } from "@/types/calendar";
-import { categoryDotColor } from "./category-style";
+import { paperCategoryDot } from "@/components/ui/paper-style";
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
@@ -19,8 +19,8 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
   return (
     <div>
       <div
-        className={`grid grid-cols-7 gap-x-1 text-center ${
-          compact ? "pb-1 font-note text-xs text-ink-soft" : "pb-2 text-xs font-medium text-muted"
+        className={`grid grid-cols-7 gap-x-1 pb-1 text-center font-note text-xs text-ink-soft ${
+          compact ? "" : "pb-2"
         }`}
       >
         {WEEKDAYS.map((day) => (
@@ -28,43 +28,17 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
         ))}
       </div>
 
-      <div className={`grid grid-cols-7 gap-x-1 ${compact ? "gap-y-1" : "gap-y-5"}`}>
+      <div className={`grid grid-cols-7 ${compact ? "gap-1" : "gap-px"}`}>
         {grid.weeks.flat().map((cell) => {
           if (!cell.isCurrentMonth) {
-            return <div key={cell.date} className={compact ? "h-9" : "h-24"} />;
+            return <div key={cell.date} className={compact ? "h-9" : "h-22"} />;
           }
 
           const isSelected = cell.date === selectedDate;
-          // День с выполнением — золотом, провал — красным, будущее гасим.
-          // Сегодня/выбранный различаются силой грани, поэтому золото не путается.
-          const statusClasses =
-            cell.status === "completed"
-              ? "border-gold/25 bg-gold/10"
-              : cell.status === "missed"
-                ? "border-danger/25 bg-danger/8"
-                : cell.status === "future"
-                  ? "border-white/6 bg-white/3"
-                  : "";
-
-          const selectionClasses = isSelected
-            ? "border-gold ring-2 ring-gold/60"
-            : cell.isToday
-              ? "border-gold/70"
-              : "";
-
-          const numberClasses = isSelected
-            ? "bg-gold text-bg"
-            : cell.isToday
-              ? "text-gold"
-              : cell.status === "future"
-                ? "text-muted"
-                : "text-fg";
+          const hasTasks = cell.tasks.length > 0 || cell.hiddenCount > 0;
 
           if (compact) {
-            const hasTasks = cell.tasks.length > 0 || cell.hiddenCount > 0;
-            // Компактная сетка живёт только в бумажной форме создания задачи,
-            // поэтому здесь своя палитра: чернила, оливковый выбранный день.
-            const paperCell = isSelected
+            const cellClasses = isSelected
               ? "bg-olive font-bold text-ink"
               : cell.isToday
                 ? "text-ink underline decoration-ink-green decoration-2 underline-offset-2"
@@ -76,7 +50,7 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
                 key={cell.date}
                 type="button"
                 onClick={() => onSelectDate(cell.date)}
-                className={`flex h-9 flex-col items-center justify-center gap-0.5 rounded-md font-note text-sm transition-colors ${paperCell}`}
+                className={`flex h-9 flex-col items-center justify-center gap-0.5 rounded-md font-note text-sm transition-colors ${cellClasses}`}
               >
                 {cell.dayNumber}
                 <span
@@ -88,15 +62,34 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
             );
           }
 
+          // День с закрытым планом — зелёные чернила, провал — красные, будущее гасим.
+          const statusClasses =
+            cell.status === "completed"
+              ? "bg-ink-green/10"
+              : cell.status === "missed"
+                ? "bg-ink-red/10"
+                : "";
+
+          const numberClasses = isSelected
+            ? "bg-olive font-bold text-ink"
+            : cell.isToday
+              ? "bg-ink-green/15 font-bold text-ink-green"
+              : cell.status === "future"
+                ? "text-ink-soft"
+                : "text-ink";
+
           return (
             <button
               key={cell.date}
               type="button"
               onClick={() => onSelectDate(cell.date)}
-              className={`glass-soft flex h-24 flex-col gap-0.5 overflow-hidden rounded-xl p-1.5 text-left transition-colors ${statusClasses} ${selectionClasses}`}
+              // Клетки разграфлённого листа: линовка вместо отдельных карточек.
+              className={`flex h-22 flex-col gap-0.5 overflow-hidden p-1.5 text-left ring-[0.5px] ring-paper-line/70 transition-colors ${statusClasses} ${
+                isSelected ? "ring-1 ring-ink-green/60" : ""
+              }`}
             >
               <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${numberClasses}`}
+                className={`flex h-6 w-6 items-center justify-center rounded-full font-note text-sm ${numberClasses}`}
               >
                 {cell.dayNumber}
               </span>
@@ -104,12 +97,16 @@ export function CalendarGrid({ grid, selectedDate, onSelectDate, compact = false
               <div className="flex flex-1 flex-col justify-end gap-0.5">
                 {cell.tasks.map((task) => (
                   <div key={task.taskId} className="flex items-center gap-1">
-                    <span className={`h-1 w-1 shrink-0 rounded-full ${categoryDotColor(task.category)}`} />
-                    <span className="truncate text-[9px] leading-none text-muted">{task.title}</span>
+                    <span
+                      className={`h-1 w-1 shrink-0 rounded-full ${paperCategoryDot(task.category)}`}
+                    />
+                    <span className="truncate font-note text-[0.6rem] leading-none text-ink-soft">
+                      {task.title}
+                    </span>
                   </div>
                 ))}
                 {cell.hiddenCount > 0 && (
-                  <span className="text-[9px] leading-none text-muted">•••</span>
+                  <span className="font-note text-[0.6rem] leading-none text-ink-soft">•••</span>
                 )}
               </div>
             </button>

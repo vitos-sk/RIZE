@@ -5,18 +5,13 @@ import { Check, ChevronDown, Star } from "lucide-react";
 import { SwipeToDelete } from "@/components/tasks/swipe-to-delete";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PaperSheet } from "@/components/ui/paper-sheet";
+import { paperCategoryDot } from "@/components/ui/paper-style";
 import { completeTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import type { Task } from "@/types/task";
 
 interface TodayTasksProps {
   uid: string;
   tasks: Task[];
-}
-
-/** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
-function categoryDotClass(category: string): string {
-  const empty = !category || category.toLowerCase() === "без категории";
-  return empty ? "bg-ink-soft/60" : "bg-ink-green";
 }
 
 export function TodayTasks({ uid, tasks }: TodayTasksProps) {
@@ -119,7 +114,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
             </span>
             <span className="flex items-center gap-2 font-note text-[0.8rem] leading-tight text-ink-soft">
               <span
-                className={`h-1.5 w-1.5 rounded-full ${categoryDotClass(task.category)}`}
+                className={`h-1.5 w-1.5 rounded-full ${paperCategoryDot(task.category)}`}
                 aria-hidden="true"
               />
               {task.category || "Без категории"}

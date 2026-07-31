@@ -13,6 +13,7 @@ import type { Log } from "@/types/log";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { DayDetailSheet } from "@/components/calendar/day-detail-sheet";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import { TaskComposeFlow, type NewTaskInput } from "@/components/tasks/task-compose-flow";
 
 export default function CalendarPage() {
@@ -86,21 +87,36 @@ export default function CalendarPage() {
   const selectedTasks = selectedDate ? (tasksByDate[selectedDate] ?? []) : [];
 
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto px-4 pb-28 pt-6">
-        <CalendarHeader year={cursor.year} month={cursor.month} onPrev={() => changeMonth(-1)} onNext={() => changeMonth(1)} />
-        <div className="mt-4">
+    <div className="paper-canvas relative flex h-full flex-col">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 overflow-y-auto px-5 pt-7 pb-32">
+        <header>
+          <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Календарь</h1>
+          <p className="mt-1.5 font-note text-sm text-ink-soft">Отмечай дни и держи ритм</p>
+        </header>
+
+        <CalendarHeader
+          year={cursor.year}
+          month={cursor.month}
+          onPrev={() => changeMonth(-1)}
+          onNext={() => changeMonth(1)}
+        />
+
+        <PaperSheet perforated innerClassName="px-1.5 pb-3">
           <CalendarGrid grid={grid} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-        </div>
+        </PaperSheet>
       </div>
 
+      {/* Кнопка добавления — оторванный кружок оливковой бумаги, как на экране Задач. */}
       <button
         type="button"
         onClick={() => openAddFlow()}
         aria-label="Добавить новую задачу"
-        className="glass-gold absolute bottom-28 right-4 z-5 flex h-14 w-14 items-center justify-center rounded-full text-bg transition-transform active:scale-95"
+        className="paper-sheet absolute right-4 bottom-28 z-5 h-14 w-14 transition-transform active:scale-95"
       >
-        <Plus className="h-6 w-6" />
+        <span className="paper-chip-bg-olive absolute inset-0 rounded-full" aria-hidden="true" />
+        <span className="relative flex h-full w-full items-center justify-center">
+          <Plus className="h-6 w-6 text-ink" strokeWidth={2.5} />
+        </span>
       </button>
 
       {selectedDate && (
