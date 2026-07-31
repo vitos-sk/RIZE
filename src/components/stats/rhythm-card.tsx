@@ -1,18 +1,11 @@
 import { Flame } from "lucide-react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
+import { paperRateTile } from "@/components/ui/paper-style";
 import { formatDayMonth } from "@/lib/logic/date";
 import type { RhythmData } from "@/lib/logic/stats";
 
 interface RhythmCardProps {
   rhythm: RhythmData;
-}
-
-/** Плитка дня: провал — красным, частичное выполнение — приглушённым золотом, полное — золотом. */
-function tileClass(rate: number | null): string {
-  if (rate === null) return "bg-white/6";
-  if (rate === 0) return "bg-danger/35";
-  if (rate < 50) return "bg-gold/25";
-  if (rate < 100) return "bg-gold/55";
-  return "bg-gold";
 }
 
 function tileTitle(dateKey: string, done: number, planned: number): string {
@@ -25,12 +18,15 @@ export function RhythmCard({ rhythm }: RhythmCardProps) {
   const lastIndex = days.length - 1;
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <PaperSheet innerClassName="p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide text-muted">РИТМ · 4 НЕДЕЛИ</span>
-        <span className="glass-chip flex items-center gap-1 rounded-full bg-gold/12 px-2.5 py-1 text-xs font-semibold text-gold">
-          <Flame className="h-3 w-3" strokeWidth={2.5} />
-          серия {streak}
+        <span className="font-hand text-xl leading-none font-bold text-ink">Ритм · 4 недели</span>
+        <span className="paper-sheet shrink-0">
+          <span className="paper-chip-bg-olive absolute inset-0" aria-hidden="true" />
+          <span className="relative flex items-center gap-1 px-2.5 py-1 font-note text-xs font-bold text-ink">
+            <Flame className="h-3 w-3" strokeWidth={2.5} />
+            серия {streak}
+          </span>
         </span>
       </div>
 
@@ -39,17 +35,17 @@ export function RhythmCard({ rhythm }: RhythmCardProps) {
           <span
             key={day.dateKey}
             title={tileTitle(day.dateKey, day.done, day.planned)}
-            className={`aspect-square flex-1 rounded-[3px] ${tileClass(day.rate)} ${
-              index === lastIndex ? "ring-1 ring-white/50" : ""
+            className={`aspect-square flex-1 rounded-[3px] ${paperRateTile(day.rate)} ${
+              index === lastIndex ? "ring-1 ring-ink/40" : ""
             }`}
           />
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-muted">
-        План закрыт полностью: <span className="font-semibold text-fg">{onTrack}</span> из {withPlan}{" "}
+      <p className="mt-3 font-note text-xs text-ink-soft">
+        План закрыт полностью: <span className="font-bold text-ink">{onTrack}</span> из {withPlan}{" "}
         дней с задачами
       </p>
-    </div>
+    </PaperSheet>
   );
 }

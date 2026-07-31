@@ -37,52 +37,58 @@ export default function StatsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4 px-5 pt-6 pb-28">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-fg">Статистика</h1>
-        <button
-          type="button"
-          className="glass-soft flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-fg"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          Фильтр
-        </button>
+    <div className="paper-canvas min-h-full">
+      <div className="mx-auto flex max-w-md flex-col gap-4 px-5 pt-7 pb-32">
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Статистика</h1>
+            <p className="mt-1.5 font-note text-sm text-ink-soft">Как держится план</p>
+          </div>
+
+          <button type="button" className="paper-sheet mt-1 shrink-0">
+            <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+            <span className="relative flex items-center gap-2 px-4 py-2 font-note text-sm text-ink">
+              <SlidersHorizontal className="h-4 w-4 text-ink-soft" strokeWidth={2} />
+              Фильтр
+            </span>
+          </button>
+        </header>
+
+        <PeriodTabs value={period} onChange={setPeriod} />
+
+        <CompletionSummaryCard
+          rate={data.totals.rate}
+          ratePoints={data.ratePoints}
+          prevRate={data.prevRate}
+          done={data.totals.done}
+          planned={data.totals.planned}
+          perDay={data.totals.perDay}
+          prevPerDay={data.prevPerDay}
+          rangeLabel={data.rangeLabel}
+          comparisonLabel={data.comparisonLabel}
+        />
+
+        <CompletionChart
+          data={data.chart}
+          unitLabel={data.chartUnitLabel}
+          currentLabel={data.currentLabel}
+          comparisonLabel={data.comparisonLabel}
+        />
+
+        <QualityRow
+          onTimeRate={data.totals.onTimeRate}
+          onTime={data.totals.onTime}
+          done={data.totals.done}
+          missed={data.totals.missed}
+          lapses={data.totals.lapses}
+        />
+
+        <RhythmCard rhythm={data.rhythm} />
+
+        <DayHighlightCards best={data.best} worst={data.worst} />
+
+        <CategoryCompletion periodLabel={data.categoryPeriodLabel} categories={data.categories} />
       </div>
-
-      <PeriodTabs value={period} onChange={setPeriod} />
-
-      <CompletionSummaryCard
-        rate={data.totals.rate}
-        ratePoints={data.ratePoints}
-        prevRate={data.prevRate}
-        done={data.totals.done}
-        planned={data.totals.planned}
-        perDay={data.totals.perDay}
-        prevPerDay={data.prevPerDay}
-        rangeLabel={data.rangeLabel}
-        comparisonLabel={data.comparisonLabel}
-      />
-
-      <CompletionChart
-        data={data.chart}
-        unitLabel={data.chartUnitLabel}
-        currentLabel={data.currentLabel}
-        comparisonLabel={data.comparisonLabel}
-      />
-
-      <QualityRow
-        onTimeRate={data.totals.onTimeRate}
-        onTime={data.totals.onTime}
-        done={data.totals.done}
-        missed={data.totals.missed}
-        lapses={data.totals.lapses}
-      />
-
-      <RhythmCard rhythm={data.rhythm} />
-
-      <DayHighlightCards best={data.best} worst={data.worst} />
-
-      <CategoryCompletion periodLabel={data.categoryPeriodLabel} categories={data.categories} />
     </div>
   );
 }

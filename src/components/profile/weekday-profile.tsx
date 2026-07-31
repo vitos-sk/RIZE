@@ -1,3 +1,4 @@
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import type { WeekdayStat } from "@/lib/logic/profile";
 
 interface WeekdayProfileProps {
@@ -12,10 +13,10 @@ export function WeekdayProfile({ weekdays, best, worst }: WeekdayProfileProps) {
   const meaningful = hasData && best && worst && best.label !== worst.label && best.rate !== worst.rate;
 
   return (
-    <div className="glass rounded-2xl p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide text-muted">РИТМ НЕДЕЛИ</span>
-        <span className="text-xs text-muted">% плана по дням</span>
+    <PaperSheet innerClassName="p-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <span className="font-hand text-xl leading-none font-bold text-ink">Ритм недели</span>
+        <span className="font-note text-xs text-ink-soft">% плана по дням</span>
       </div>
 
       <div className="flex h-28 items-end gap-2">
@@ -30,35 +31,35 @@ export function WeekdayProfile({ weekdays, best, worst }: WeekdayProfileProps) {
               className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
             >
               <span
-                className={`text-[10px] font-bold ${isBest ? "text-gold" : "text-muted"}`}
+                className={`font-note text-[10px] font-bold ${isBest ? "text-ink-green" : "text-ink-soft"}`}
               >
                 {stat.rate === null ? "—" : `${rate}%`}
               </span>
-              <div className="glass-inset flex w-full flex-1 items-end overflow-hidden rounded-md">
+              <div className="paper-inset flex w-full flex-1 items-end overflow-hidden rounded-md">
                 <div
                   title={`${stat.done} из ${stat.planned}`}
                   className={`w-full rounded-md transition-[height] duration-500 ${
-                    isWorst ? "bg-danger/50" : isBest ? "bg-gold" : "bg-white/25"
+                    isWorst ? "bg-ink-red/60" : isBest ? "bg-ink-green" : "bg-ink/30"
                   }`}
                   style={{ height: `${Math.max(rate === 0 ? 0 : 6, Math.min(100, rate))}%` }}
                 />
               </div>
-              <span className="text-[11px] font-medium text-muted">{stat.label}</span>
+              <span className="font-note text-[11px] text-ink-soft">{stat.label}</span>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-3 border-t border-white/8 pt-3 text-xs text-muted">
+      <p className="mt-3 border-t border-paper-line/70 pt-3 font-note text-xs text-ink-soft">
         {meaningful ? (
           <>
-            Сильнее всего — <span className="font-semibold text-gold">{best.label}</span> ({best.rate}
-            %), проседает <span className="font-semibold text-fg">{worst.label}</span> ({worst.rate}%)
+            Сильнее всего — <span className="font-bold text-ink-green">{best.label}</span> ({best.rate}
+            %), проседает <span className="font-bold text-ink">{worst.label}</span> ({worst.rate}%)
           </>
         ) : (
           "Данных пока мало — ритм недели появится, когда наберётся история"
         )}
       </p>
-    </div>
+    </PaperSheet>
   );
 }

@@ -15,7 +15,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [loading, user, router]);
 
   if (loading || !user) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted">Загрузка…</div>;
+    return (
+      <div className="flex h-full items-center justify-center font-note text-sm text-ink-soft">
+        Загрузка…
+      </div>
+    );
   }
 
   return <>{children}</>;

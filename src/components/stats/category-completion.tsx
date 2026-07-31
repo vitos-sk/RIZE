@@ -1,4 +1,5 @@
-import { categoryDotColor, categoryTextColor } from "@/components/calendar/category-style";
+import { PaperSheet } from "@/components/ui/paper-sheet";
+import { paperCategoryDot } from "@/components/ui/paper-style";
 import type { CategoryProgress } from "@/lib/logic/stats";
 
 interface CategoryCompletionProps {
@@ -8,14 +9,16 @@ interface CategoryCompletionProps {
 
 export function CategoryCompletion({ periodLabel, categories }: CategoryCompletionProps) {
   return (
-    <div className="glass rounded-2xl p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide text-muted">ВЫПОЛНЕНИЕ ПО КАТЕГОРИЯМ</span>
-        <span className="text-xs text-muted">{periodLabel}</span>
+    <PaperSheet innerClassName="p-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <span className="font-hand text-xl leading-none font-bold text-ink">По категориям</span>
+        <span className="font-note text-xs text-ink-soft">{periodLabel}</span>
       </div>
 
       {categories.length === 0 ? (
-        <p className="py-2 text-sm text-muted">За этот период нет запланированных задач.</p>
+        <p className="py-2 font-note text-[0.95rem] text-ink-soft">
+          За этот период нет запланированных задач.
+        </p>
       ) : (
         <div className="flex flex-col gap-4">
           {categories.map(({ category, done, total }) => {
@@ -23,20 +26,23 @@ export function CategoryCompletion({ periodLabel, categories }: CategoryCompleti
 
             return (
               <div key={category}>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm font-medium text-fg">
-                    <span className={`h-2.5 w-2.5 rounded-full ${categoryDotColor(category)}`} />
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 font-note text-[0.95rem] font-bold text-ink">
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${paperCategoryDot(category)}`}
+                      aria-hidden="true"
+                    />
                     {category}
                   </span>
-                  <span className={`text-sm font-bold ${categoryTextColor(category)}`}>{percent}%</span>
+                  <span className="font-note text-[0.95rem] font-bold text-ink">{percent}%</span>
                 </div>
-                <div className="glass-inset h-2 w-full overflow-hidden rounded-full">
+                <div className="paper-inset h-2 w-full overflow-hidden rounded-full">
                   <div
-                    className={`h-full rounded-full ${categoryDotColor(category)}`}
+                    className="h-full rounded-full bg-ink-green"
                     style={{ width: `${percent}%` }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 font-note text-xs text-ink-soft">
                   {done} из {total} задач выполнено
                 </p>
               </div>
@@ -44,6 +50,6 @@ export function CategoryCompletion({ periodLabel, categories }: CategoryCompleti
           })}
         </div>
       )}
-    </div>
+    </PaperSheet>
   );
 }

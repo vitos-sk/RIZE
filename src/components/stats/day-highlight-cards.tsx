@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import type { BucketHighlight } from "@/lib/logic/stats";
 
 interface DayHighlightCardsProps {
@@ -15,25 +16,22 @@ function HighlightCard({
 }) {
   const isBest = mode === "best";
   const Icon = isBest ? ArrowUp : ArrowDown;
-  const tone = isBest ? "text-gold" : "text-danger";
-  const chipBg = isBest ? "bg-gold/12" : "bg-danger/15";
+  const tone = isBest ? "text-ink-green" : "text-ink-red";
 
   return (
-    <div className="glass rounded-2xl p-4">
-      <span
-        className={`glass-chip mb-3 flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${chipBg} ${tone}`}
-      >
+    <PaperSheet innerClassName="p-4">
+      <span className={`mb-2 flex w-fit items-center gap-1 font-note text-xs font-bold ${tone}`}>
         <Icon className="h-3 w-3" strokeWidth={3} />
         {isBest ? "Лучший" : "Худший"}
       </span>
-      <p className="text-lg font-bold text-fg">{highlight.label}</p>
-      <p className={`text-xl font-bold ${tone}`}>
+      <p className="font-note text-[1rem] font-bold text-ink">{highlight.label}</p>
+      <p className={`font-hand text-2xl leading-tight font-bold ${tone}`}>
         {highlight.rate === null ? highlight.done : `${highlight.rate}%`}
       </p>
-      <p className="mt-1 text-xs text-muted">
+      <p className="mt-1 font-note text-xs text-ink-soft">
         {highlight.planned > 0 ? `${highlight.done} из ${highlight.planned} задач` : "задач выполнено"}
       </p>
-    </div>
+    </PaperSheet>
   );
 }
 

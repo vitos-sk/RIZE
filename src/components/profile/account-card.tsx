@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, KeyRound, LogOut, Mail } from "lucide-react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 
 interface AccountCardProps {
   email: string;
@@ -28,16 +29,14 @@ export function AccountCard({ email, onResetPassword, onSignOut }: AccountCardPr
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold text-fg">Аккаунт</h2>
+      <h2 className="font-hand text-2xl leading-none font-bold text-ink">Аккаунт</h2>
 
-      <div className="glass flex flex-col gap-1 rounded-2xl p-2">
-        <div className="glass-soft flex items-center gap-3 rounded-xl px-4 py-3">
-          <span className="glass-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-            <Mail className="h-4 w-4 text-muted" />
-          </span>
+      <PaperSheet innerClassName="flex flex-col">
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <Mail className="h-5 w-5 shrink-0 text-ink-soft" strokeWidth={1.8} />
           <div className="flex min-w-0 flex-col">
-            <span className="text-xs text-muted">Почта</span>
-            <span className="truncate text-sm font-medium text-fg">{email}</span>
+            <span className="font-note text-xs text-ink-soft">Почта</span>
+            <span className="truncate font-note text-[0.95rem] font-bold text-ink">{email}</span>
           </div>
         </div>
 
@@ -45,52 +44,59 @@ export function AccountCard({ email, onResetPassword, onSignOut }: AccountCardPr
           type="button"
           onClick={handleReset}
           disabled={reset === "sending" || reset === "sent"}
-          className="glass-soft flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-white/8 disabled:opacity-70"
+          className="flex items-center gap-3 border-t border-paper-line/70 px-4 py-3.5 text-left disabled:opacity-70"
         >
-          <span className="glass-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8">
-            {reset === "sent" ? (
-              <Check className="h-4 w-4 text-gold" />
-            ) : (
-              <KeyRound className="h-4 w-4 text-muted" />
-            )}
-          </span>
+          {reset === "sent" ? (
+            <Check className="h-5 w-5 shrink-0 text-ink-green" strokeWidth={2.5} />
+          ) : (
+            <KeyRound className="h-5 w-5 shrink-0 text-ink-soft" strokeWidth={1.8} />
+          )}
           <div className="flex min-w-0 flex-col">
-            <span className="text-sm font-medium text-fg">Сменить пароль</span>
-            <span className={`text-xs ${reset === "error" ? "text-danger" : "text-muted"}`}>
+            <span className="font-note text-[0.95rem] font-bold text-ink">Сменить пароль</span>
+            <span
+              className={`font-note text-xs ${reset === "error" ? "text-ink-red" : "text-ink-soft"}`}
+            >
               {RESET_HINT[reset]}
             </span>
           </div>
         </button>
-      </div>
+      </PaperSheet>
 
       {confirmingExit ? (
-        <div className="glass flex flex-col gap-3 rounded-2xl p-4">
-          <span className="text-sm text-fg">Выйти из аккаунта? Данные останутся в облаке.</span>
+        <PaperSheet innerClassName="flex flex-col gap-3 p-4">
+          <span className="font-note text-[0.95rem] text-ink">
+            Выйти из аккаунта? Данные останутся в облаке.
+          </span>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setConfirmingExit(false)}
-              className="glass-soft flex-1 rounded-xl py-3 text-sm font-medium text-fg"
+              className="paper-sheet flex-1"
             >
-              Отмена
+              <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3 font-note text-[0.95rem] text-ink-soft">
+                Отмена
+              </span>
             </button>
             <button
               type="button"
               onClick={() => onSignOut().catch(console.error)}
-              className="glass-soft flex-1 rounded-xl border-danger/50 bg-danger/15 py-3 text-sm font-bold text-danger"
+              className="paper-sheet flex-1"
             >
-              Выйти
+              <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3 font-note text-[0.95rem] font-bold text-ink-red">
+                Выйти
+              </span>
             </button>
           </div>
-        </div>
+        </PaperSheet>
       ) : (
-        <button
-          type="button"
-          onClick={() => setConfirmingExit(true)}
-          className="glass flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
-        >
-          <LogOut className="h-4 w-4" />
-          Выйти
+        <button type="button" onClick={() => setConfirmingExit(true)} className="paper-sheet w-full">
+          <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+          <span className="relative flex items-center justify-center gap-2 py-3.5 font-note text-[0.95rem] font-bold text-ink-red">
+            <LogOut className="h-4 w-4" />
+            Выйти
+          </span>
         </button>
       )}
     </div>

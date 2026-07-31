@@ -7,8 +7,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Геймифицированный трекер задач, целей и привычек",
     start_url: "/",
     display: "standalone",
-    background_color: "#0c0b0a",
-    theme_color: "#0c0b0a",
+    // Splash-экран PWA — тот же лист бумаги, что и фон приложения.
+    background_color: "#e8e1cf",
+    theme_color: "#e8e1cf",
     icons: [
       {
         src: "/favicon.ico",

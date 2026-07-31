@@ -40,19 +40,22 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
   }
 
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 overflow-y-auto px-5 pb-28 pt-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-fg">Профиль</h1>
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="glass-soft flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-white/8"
-          >
-            <Pencil className="h-4 w-4" />
-            Изменить
+    <div className="paper-canvas relative flex h-full flex-col">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 overflow-y-auto px-5 pt-7 pb-32">
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Профиль</h1>
+            <p className="mt-1.5 font-note text-sm text-ink-soft">Как ты работаешь на самом деле</p>
+          </div>
+
+          <button type="button" onClick={() => setSheetOpen(true)} className="paper-sheet mt-1 shrink-0">
+            <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+            <span className="relative flex items-center gap-2 px-4 py-2 font-note text-sm text-ink">
+              <Pencil className="h-4 w-4 text-ink-soft" strokeWidth={2} />
+              Изменить
+            </span>
           </button>
-        </div>
+        </header>
 
         <ProfileHero
           displayName={displayName}
@@ -65,7 +68,7 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
         <LifetimeSummary insights={insights} />
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold text-fg">Как ты работаешь</h2>
+          <h2 className="font-hand text-2xl leading-none font-bold text-ink">Как ты работаешь</h2>
           <YearHeatmap heatmap={insights.heatmap} />
           <WeekdayProfile
             weekdays={insights.weekdays}
@@ -84,7 +87,7 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
           onSignOut={() => signOutUser()}
         />
 
-        <p className="text-center text-xs text-muted">
+        <p className="text-center font-note text-xs text-ink-soft">
           {insights.daysSinceStart} дн. в FokusTracker · {insights.totals.done} выполнений
         </p>
       </div>

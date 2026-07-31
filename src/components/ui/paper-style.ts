@@ -1,9 +1,8 @@
 import type { Priority } from "@/types/task";
 
 /**
- * Палитра бумажных экранов. Отдельно от `calendar/category-style.ts`: тот отдаёт
- * классы для тёмного стекла (им ещё пользуется Статистика), а здесь всё считается
- * в чернилах — иначе на светлом листе `bg-white/40` просто исчезает.
+ * Палитра бумажных экранов: категории, приоритеты и шкала дней. Всё считается в
+ * чернилах — на светлом листе прежние `bg-white/40` из тёмной темы просто исчезали.
  */
 
 /** Задача без категории — серая точка, остальные — «чернильная» зелёная. */
@@ -34,6 +33,28 @@ const PRIORITY_DOT: Record<Priority, string> = {
 export function paperPriorityDot(priority: Priority): string {
   return PRIORITY_DOT[priority];
 }
+
+/**
+ * Плитка дня для карт ритма (Статистика) и года (Профиль): без плана — пустой лист,
+ * провал — красные чернила, дальше зелёные по насыщенности. Шкала одна на оба экрана,
+ * иначе одинаковые дни выглядят по-разному.
+ */
+export function paperRateTile(rate: number | null, outside = false): string {
+  if (outside) return "bg-ink/[0.04]";
+  if (rate === null) return "bg-ink/8";
+  if (rate === 0) return "bg-ink-red/35";
+  if (rate < 50) return "bg-ink-green/25";
+  if (rate < 100) return "bg-ink-green/55";
+  return "bg-ink-green";
+}
+
+/** Легенда к `paperRateTile` — от срыва к закрытому плану. */
+export const PAPER_RATE_LEGEND = [
+  "bg-ink-red/35",
+  "bg-ink-green/25",
+  "bg-ink-green/55",
+  "bg-ink-green",
+];
 
 const PRIORITY_TEXT: Record<Priority, string> = {
   1: "text-ink",

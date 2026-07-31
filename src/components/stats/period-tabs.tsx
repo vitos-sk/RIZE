@@ -11,35 +11,37 @@ const PERIODS: { id: Period; label: string }[] = [
 interface PeriodTabsProps {
   value: Period;
   onChange: (period: Period) => void;
-  /** Без стеклянной подложки — переключатель лежит прямо на фоне экрана (Главная). */
-  bare?: boolean;
 }
 
-export function PeriodTabs({ value, onChange, bare = false }: PeriodTabsProps) {
+/** Полоска крафта, активный период — приклеенный сверху кусок оливковой бумаги. */
+export function PeriodTabs({ value, onChange }: PeriodTabsProps) {
   return (
-    <div className={`flex items-center gap-1 rounded-2xl ${bare ? "" : "glass-soft p-1"}`}>
-      {PERIODS.map(({ id, label }) => {
-        const isActive = id === value;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onChange(id)}
-            className={`flex-1 rounded-xl py-2 text-sm font-medium transition-colors ${
-              isActive
-                ? bare
-                  ? "text-gold"
-                  : "glass-chip bg-white/10 text-gold"
-                : "text-muted hover:text-fg"
-            }`}
-          >
-            {label}
-            <span
-              className={`mx-auto mt-1 block h-0.5 w-4 rounded-full ${isActive ? "bg-gold" : "bg-transparent"}`}
-            />
-          </button>
-        );
-      })}
+    <div className="paper-sheet">
+      <div className="paper-sheet-bg absolute inset-0 rounded-[2px]" aria-hidden="true" />
+
+      <div className="relative flex items-stretch">
+        {PERIODS.map(({ id, label }) => {
+          const isActive = id === value;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onChange(id)}
+              className="paper-sheet flex-1 py-3 font-note text-[1.05rem]"
+            >
+              {isActive && (
+                <span
+                  className="paper-chip-bg-olive absolute -inset-x-1 -inset-y-1.5 -rotate-[0.6deg]"
+                  aria-hidden="true"
+                />
+              )}
+              <span className={`relative ${isActive ? "font-bold text-ink" : "text-ink-soft"}`}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

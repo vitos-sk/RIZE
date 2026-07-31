@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 
 interface CompletionSummaryCardProps {
   rate: number;
@@ -33,11 +34,10 @@ export function CompletionSummaryCard({
   const isFlat = ratePoints === 0;
   const isUp = ratePoints > 0;
   const TrendIcon = isFlat ? ArrowRight : isUp ? ArrowUp : ArrowDown;
-  const trendTone = isFlat ? "text-muted" : isUp ? "text-gold" : "text-danger";
-  const trendBg = isFlat ? "bg-white/8" : isUp ? "bg-gold/12" : "bg-danger/15";
+  const trendTone = isFlat ? "text-ink-soft" : isUp ? "text-ink-green" : "text-ink-red";
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <PaperSheet innerClassName="p-4">
       <div className="flex items-center gap-4">
         <div className="relative h-[84px] w-[84px] shrink-0">
           <svg viewBox="0 0 84 84" className="h-full w-full -rotate-90">
@@ -46,7 +46,7 @@ export function CompletionSummaryCard({
               cy="42"
               r={RADIUS}
               fill="none"
-              stroke="rgb(255 255 255 / 0.1)"
+              stroke="var(--color-paper-line)"
               strokeWidth="7"
             />
             <circle
@@ -54,7 +54,7 @@ export function CompletionSummaryCard({
               cy="42"
               r={RADIUS}
               fill="none"
-              stroke="var(--color-gold)"
+              stroke="var(--color-ink-green)"
               strokeWidth="7"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
@@ -62,42 +62,44 @@ export function CompletionSummaryCard({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-xl font-bold text-fg">{planned > 0 ? `${rate}%` : "—"}</span>
-            <span className="text-[10px] text-muted">плана</span>
+            <span className="font-hand text-2xl leading-none font-bold text-ink">
+              {planned > 0 ? `${rate}%` : "—"}
+            </span>
+            <span className="mt-0.5 font-note text-[0.7rem] text-ink-soft">плана</span>
           </div>
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted">
+          <p className="font-note text-[0.9rem] text-ink-soft">
             {planned > 0 ? "План закрыт" : "На этот период задач не было"}
           </p>
-          <p className="text-2xl font-bold text-fg">
+          <p className="font-hand text-3xl leading-tight font-bold text-ink">
             {done}
-            <span className="text-base font-medium text-muted"> из {planned} задач</span>
+            <span className="font-note text-base font-normal text-ink-soft"> из {planned} задач</span>
           </p>
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span
-              className={`glass-chip flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${trendBg} ${trendTone}`}
+              className={`flex items-center gap-1 font-note text-[0.8rem] font-bold ${trendTone}`}
             >
               <TrendIcon className="h-3 w-3" strokeWidth={3} />
               {isUp ? "+" : ""}
               {ratePoints} п.п.
             </span>
-            <span className="text-xs text-muted">
+            <span className="font-note text-[0.8rem] text-ink-soft">
               {comparisonLabel} — {prevRate}%
             </span>
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-3 text-xs text-muted">
+      <div className="mt-4 flex items-center justify-between border-t border-paper-line/70 pt-3 font-note text-[0.8rem] text-ink-soft">
         <span>{rangeLabel}</span>
         <span>
-          темп <span className="font-semibold text-fg">{formatPerDay(perDay)}</span> задач/день
-          <span className="text-muted"> (было {formatPerDay(prevPerDay)})</span>
+          темп <span className="font-bold text-ink">{formatPerDay(perDay)}</span> задач/день
+          <span> (было {formatPerDay(prevPerDay)})</span>
         </span>
       </div>
-    </div>
+    </PaperSheet>
   );
 }

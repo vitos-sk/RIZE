@@ -7,7 +7,7 @@ import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { paperCategoryDot, paperPriorityDot } from "@/components/ui/paper-style";
 import { buildMonthGrid } from "@/lib/logic/calendar";
-import { formatDayMonth, fromDateKey } from "@/lib/logic/date";
+import { WEEKDAY_LABELS, formatDayMonth, fromDateKey } from "@/lib/logic/date";
 import type { CalendarTaskSummary } from "@/types/calendar";
 import type { Log } from "@/types/log";
 import type { Priority, Task, TaskType } from "@/types/task";
@@ -44,6 +44,8 @@ interface TaskComposeFlowProps {
   todayKey: string;
   initialCursor: { year: number; month: number };
   initialDate?: string | null;
+  /** Экран Привычек открывает форму сразу в нужном типе — день там спрашивать незачем. */
+  initialType?: TaskType;
   onClose: () => void;
   onSubmit: (input: NewTaskInput) => void;
 }
@@ -55,10 +57,12 @@ export function TaskComposeFlow({
   todayKey,
   initialCursor,
   initialDate = null,
+  initialType = "once",
   onClose,
   onSubmit,
 }: TaskComposeFlowProps) {
-  const skipDateStep = initialDate != null;
+  // У повторяющейся задачи дня нет — спрашивать его на первом шаге незачем.
+  const skipDateStep = initialDate != null || initialType !== "once";
 
   const [step, setStep] = useState<Step>(skipDateStep ? "category" : "date");
   const [cursor, setCursor] = useState(() => {
@@ -77,9 +81,12 @@ export function TaskComposeFlow({
   const [customCategory, setCustomCategory] = useState("");
 
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<TaskType>("once");
+  const [type, setType] = useState<TaskType>(initialType);
   const [priority, setPriority] = useState<Priority>(3);
   const [isNegative, setIsNegative] = useState(false);
+  // Расписание привычки. Все семь дней = «каждый день», в базу уходит пустой массив —
+  // именно его `plannedOnDay` понимает как «планируется всегда».
+  const [weekdays, setWeekdays] = useState<string[]>([...WEEKDAY_LABELS]);
 
   const grid = useMemo(
     () => buildMonthGrid(cursor.year, cursor.month, logsByDate, tasksByDate, todayKey),
@@ -127,6 +134,14 @@ export function TaskComposeFlow({
     chooseCategory(trimmed);
   }
 
+  function toggleWeekday(day: string) {
+    setWeekdays((prev) => {
+      // Совсем без дней привычка теряет план — последний день снять нельзя.
+      if (prev.includes(day)) return prev.length > 1 ? prev.filter((d) => d !== day) : prev;
+      return WEEKDAY_LABELS.filter((label) => label === day || prev.includes(label));
+    });
+  }
+
   function handleSubmit() {
     if (!title.trim()) return;
     const isRecurring = type !== "once";
@@ -136,7 +151,7 @@ export function TaskComposeFlow({
       type,
       priority,
       isNegative: type === "habit" && isNegative,
-      schedule: [],
+      schedule: type === "habit" && weekdays.length < WEEKDAY_LABELS.length ? weekdays : [],
       // Дедлайн ставится, только если пользователь сам выбрал день: «Без конкретного дня»
       // означает задачу без срока, а не задачу на сегодня.
       dueDate: isRecurring ? null : selectedDate,
@@ -147,10 +162,12 @@ export function TaskComposeFlow({
     <>
       <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="paper-sheet absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto">
+      {/* Скроллится ВНУТРЕННИЙ слой: фон с рваным краем лежит на неподвижной
+          обёртке, иначе бумага уезжала бы вместе с контентом. */}
+      <div className="paper-sheet absolute inset-x-0 bottom-0 z-40 flex max-h-[85%] flex-col">
         <div className="paper-sheet-bg absolute inset-0 rounded-t-[3px]" aria-hidden="true" />
 
-        <div className="relative px-5 pt-3 pb-6">
+        <div className="relative overflow-y-auto px-5 pt-3 pb-6">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
           <div className="mb-4 flex items-center justify-between">
@@ -338,6 +355,37 @@ export function TaskComposeFlow({
                         <X className="h-4 w-4" />
                       </button>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* У привычки срока нет — вместо него расписание по дням недели. */}
+              {type === "habit" && (
+                <div className="flex flex-col gap-2.5">
+                  <span className="font-note text-xs text-ink-soft">
+                    Дни недели
+                    {weekdays.length === WEEKDAY_LABELS.length ? " · каждый день" : ""}
+                  </span>
+                  <div className="flex items-center justify-between gap-1.5">
+                    {WEEKDAY_LABELS.map((day) => {
+                      const isActive = weekdays.includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => toggleWeekday(day)}
+                          aria-pressed={isActive}
+                          aria-label={day}
+                          className={`h-10 flex-1 rounded-full border-2 font-note text-[0.9rem] transition-colors ${
+                            isActive
+                              ? "border-ink-green bg-ink-green/12 font-bold text-ink"
+                              : "border-ink/12 bg-paper/50 text-ink-soft"
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

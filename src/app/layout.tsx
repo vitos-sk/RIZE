@@ -33,8 +33,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c0b0a",
-  colorScheme: "dark",
+  // Бумага — основной фон приложения: и строка состояния PWA, и первый кадр
+  // загрузки должны быть тёплыми, а не графитовыми.
+  themeColor: "#e8e1cf",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -50,9 +52,10 @@ export default function RootLayout({
       lang="ru"
       className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} ${neucha.variable} h-full`}
     >
-      <body className="h-dvh bg-black font-sans text-fg antialiased">
-        <div className="relative isolate mx-auto flex h-dvh w-full max-w-107.5 flex-col overflow-hidden bg-bg sm:border-x sm:border-white/10 sm:shadow-2xl sm:shadow-black/60">
-          <div className="app-aurora pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+      {/* Фон-бумага задан на body в globals.css — «телефон» и поле вокруг него
+          на десктопе лежат на одном листе, поэтому тёмного кадра при загрузке нет. */}
+      <body className="h-dvh font-sans text-ink antialiased">
+        <div className="paper-canvas relative isolate mx-auto flex h-dvh w-full max-w-107.5 flex-col overflow-hidden sm:border-x sm:border-ink/10 sm:shadow-2xl sm:shadow-ink/25">
           <AuthProvider>{children}</AuthProvider>
         </div>
       </body>

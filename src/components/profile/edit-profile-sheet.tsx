@@ -43,63 +43,72 @@ export function EditProfileSheet({ initialName, onClose, onSave }: EditProfileSh
 
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="glass-bar absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
+      {/* Скроллится ВНУТРЕННИЙ слой: фон с рваным краем лежит на неподвижной
+          обёртке, иначе бумага уезжала бы вместе с контентом. */}
+      <div className="paper-sheet absolute inset-x-0 bottom-0 z-40 flex max-h-[85%] flex-col">
+        <div className="paper-sheet-bg absolute inset-0 rounded-t-[3px]" aria-hidden="true" />
 
-        <div className="mb-5 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Закрыть"
-            className="glass-chip rounded-full p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-fg"
-          >
-            <X className="h-5 w-5" />
-          </button>
-          <h2 className="text-sm font-bold text-fg">Изменить профиль</h2>
-          <div className="h-8 w-8" />
-        </div>
+        <div className="relative overflow-y-auto px-5 pt-3 pb-6">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleSubmit();
-          }}
-          className="flex flex-col gap-5"
-        >
-          <div className="flex flex-col gap-2">
-            <label htmlFor="profile-name" className="text-xs font-medium text-muted">
-              Имя
-            </label>
-            <input
-              id="profile-name"
-              type="text"
-              value={name}
-              maxLength={24}
-              autoFocus
-              onChange={(event) => {
-                setName(event.target.value);
-                setError(null);
-              }}
-              placeholder="Как тебя звать"
-              className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
-            />
-            {error ? (
-              <span className="text-xs text-danger">{error}</span>
-            ) : (
-              <span className="text-xs text-muted">Первая буква станет аватаром.</span>
-            )}
+          <div className="mb-5 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Закрыть"
+              className="paper-chip-bg rounded-full p-1.5 text-ink"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="font-hand text-2xl leading-none font-bold text-ink">Изменить профиль</h2>
+            <div className="h-8 w-8" />
           </div>
 
-          <button
-            type="submit"
-            disabled={saving || name.trim() === initialName.trim()}
-            className="glass-gold flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-bold text-bg transition-transform active:scale-[0.98] disabled:opacity-50"
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSubmit();
+            }}
+            className="flex flex-col gap-5"
           >
-            {saving ? "Сохраняю…" : "Сохранить"}
-          </button>
-        </form>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="profile-name" className="font-note text-xs text-ink-soft">
+                Имя
+              </label>
+              <input
+                id="profile-name"
+                type="text"
+                value={name}
+                maxLength={24}
+                autoFocus
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setError(null);
+                }}
+                placeholder="Как тебя звать"
+                className="paper-field w-full rounded-sm px-4 py-3 font-note text-[1.05rem] text-ink outline-none placeholder:text-ink-soft"
+              />
+              {error ? (
+                <span className="font-note text-xs text-ink-red">{error}</span>
+              ) : (
+                <span className="font-note text-xs text-ink-soft">Первая буква станет аватаром.</span>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving || name.trim() === initialName.trim()}
+              className="paper-sheet w-full transition-transform active:scale-[0.98] disabled:opacity-50"
+            >
+              <span className="paper-chip-bg-olive absolute inset-0" aria-hidden="true" />
+              <span className="relative block py-3.5 text-center font-note text-[1.05rem] font-bold text-ink">
+                {saving ? "Сохраняю…" : "Сохранить"}
+              </span>
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );

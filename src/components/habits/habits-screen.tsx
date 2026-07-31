@@ -185,7 +185,8 @@ export function HabitsScreen() {
   const [habits] = useState(HABITS);
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-5 pb-28">
+    // Экран ещё стеклянный — тёмный фон держит он сам, а не оболочка приложения.
+    <div className="dark-canvas mx-auto flex min-h-full max-w-md flex-col gap-6 px-5 pb-28">
       <div className="flex items-center justify-between pt-8">
         <button type="button" aria-label="Фильтры" className="glass-soft rounded-full p-2 text-fg">
           <ListFilter className="h-5 w-5" />

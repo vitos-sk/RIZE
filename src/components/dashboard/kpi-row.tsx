@@ -1,8 +1,7 @@
 "use client";
 
 import { CheckCircle2, Target, XCircle } from "lucide-react";
-import { PaperPeriodTabs } from "@/components/dashboard/paper-period-tabs";
-import type { Period } from "@/components/stats/period-tabs";
+import { PeriodTabs, type Period } from "@/components/stats/period-tabs";
 
 interface KpiRowProps {
   done: number;
@@ -79,7 +78,7 @@ export function KpiRow({
 
   return (
     <div className="flex flex-col gap-5">
-      <PaperPeriodTabs value={period} onChange={onPeriodChange} />
+      <PeriodTabs value={period} onChange={onPeriodChange} />
 
       <div className="paper-sheet mt-1">
         <div className="paper-sheet-bg absolute inset-0 rounded-[2px]" aria-hidden="true" />

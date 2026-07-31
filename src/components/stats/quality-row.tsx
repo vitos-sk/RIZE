@@ -1,4 +1,5 @@
 import { Clock, MinusCircle, XCircle } from "lucide-react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 
 interface QualityRowProps {
   onTimeRate: number;
@@ -11,28 +12,28 @@ interface QualityRowProps {
 export function QualityRow({ onTimeRate, onTime, done, missed, lapses }: QualityRowProps) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      <div className="glass flex flex-col gap-1 rounded-2xl p-3.5">
-        <Clock className="h-4 w-4 text-gold" />
-        <span className="text-xl font-bold text-fg">{onTimeRate}%</span>
-        <span className="text-xs text-muted">вовремя</span>
-        <span className="text-[11px] text-muted">
+      <PaperSheet innerClassName="flex flex-col gap-1 p-3.5">
+        <Clock className="h-4 w-4 text-ink-green" />
+        <span className="font-hand text-2xl leading-none font-bold text-ink">{onTimeRate}%</span>
+        <span className="font-note text-xs text-ink-soft">вовремя</span>
+        <span className="font-note text-[0.7rem] text-ink-soft">
           {onTime} из {done}
         </span>
-      </div>
+      </PaperSheet>
 
-      <div className="glass flex flex-col gap-1 rounded-2xl p-3.5">
-        <XCircle className={`h-4 w-4 ${missed > 0 ? "text-danger" : "text-muted"}`} />
-        <span className="text-xl font-bold text-fg">{missed}</span>
-        <span className="text-xs text-muted">пропущено</span>
-        <span className="text-[11px] text-muted">из плана</span>
-      </div>
+      <PaperSheet innerClassName="flex flex-col gap-1 p-3.5">
+        <XCircle className={`h-4 w-4 ${missed > 0 ? "text-ink-red" : "text-ink-soft"}`} />
+        <span className="font-hand text-2xl leading-none font-bold text-ink">{missed}</span>
+        <span className="font-note text-xs text-ink-soft">пропущено</span>
+        <span className="font-note text-[0.7rem] text-ink-soft">из плана</span>
+      </PaperSheet>
 
-      <div className="glass flex flex-col gap-1 rounded-2xl p-3.5">
-        <MinusCircle className={`h-4 w-4 ${lapses > 0 ? "text-danger" : "text-muted"}`} />
-        <span className="text-xl font-bold text-fg">{lapses}</span>
-        <span className="text-xs text-muted">срывов</span>
-        <span className="text-[11px] text-muted">плохих привычек</span>
-      </div>
+      <PaperSheet innerClassName="flex flex-col gap-1 p-3.5">
+        <MinusCircle className={`h-4 w-4 ${lapses > 0 ? "text-ink-red" : "text-ink-soft"}`} />
+        <span className="font-hand text-2xl leading-none font-bold text-ink">{lapses}</span>
+        <span className="font-note text-xs text-ink-soft">срывов</span>
+        <span className="font-note text-[0.7rem] text-ink-soft">плохих привычек</span>
+      </PaperSheet>
     </div>
   );
 }

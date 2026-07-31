@@ -69,7 +69,6 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
     return (
       <SwipeToDelete
         key={task.id}
-        tone="paper"
         open={swiped}
         onOpenChange={(open) => setSwipedId(open ? task.id : null)}
         onDelete={() => setTaskToDelete(task)}

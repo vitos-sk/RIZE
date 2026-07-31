@@ -83,7 +83,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto overscroll-contain px-6 pb-8">
+    // Вход остался стеклянным — тёмный фон он несёт сам поверх бумажной оболочки.
+    <div className="dark-canvas flex h-full flex-col overflow-y-auto overscroll-contain px-6 pb-8">
       <div className="flex flex-col items-center gap-3 pb-6 pt-8 text-center">
         <GemLogo />
         <h1 className="text-3xl font-extrabold tracking-tight text-fg">FokusTracker</h1>

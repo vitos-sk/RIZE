@@ -1,12 +1,13 @@
 import { CalendarCheck, CheckCircle2, Clock, Flame, Target, TrendingUp, Trophy, Skull } from "lucide-react";
 import type { ComponentType } from "react";
+import { PaperSheet } from "@/components/ui/paper-sheet";
 import type { ProfileInsights } from "@/lib/logic/profile";
 
 interface StatEntry {
   icon: ComponentType<{ className?: string }>;
   value: string;
   label: string;
-  /** Золотом подсвечено только то, что говорит о дисциплине: серии и точность. */
+  /** Зелёным подсвечено только то, что говорит о дисциплине: серии и точность. */
   accent?: boolean;
   danger?: boolean;
 }
@@ -35,28 +36,26 @@ export function StatsGrid({ insights }: StatsGridProps) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-fg">Сухие цифры</h2>
-        <span className="text-sm font-medium text-muted">За всё время</span>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-hand text-2xl leading-none font-bold text-ink">Сухие цифры</h2>
+        <span className="font-note text-sm text-ink-soft">За всё время</span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {stats.map(({ icon: Icon, value, label, accent, danger }) => (
-          <div key={label} className="glass flex items-center gap-3 rounded-2xl p-4">
-            <div
-              className={`glass-chip flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                danger ? "bg-danger/12" : accent ? "bg-gold/12" : "bg-white/8"
+          <PaperSheet key={label} innerClassName="flex items-center gap-3 p-4">
+            <Icon
+              className={`h-6 w-6 shrink-0 ${
+                danger ? "text-ink-red" : accent ? "text-ink-green" : "text-ink-soft"
               }`}
-            >
-              <Icon
-                className={`h-5 w-5 ${danger ? "text-danger" : accent ? "text-gold" : "text-muted"}`}
-              />
-            </div>
+            />
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-lg font-bold text-fg">{value}</span>
-              <span className="text-xs text-muted">{label}</span>
+              <span className="truncate font-hand text-2xl leading-none font-bold text-ink">
+                {value}
+              </span>
+              <span className="mt-1 font-note text-xs text-ink-soft">{label}</span>
             </div>
-          </div>
+          </PaperSheet>
         ))}
       </div>
     </div>

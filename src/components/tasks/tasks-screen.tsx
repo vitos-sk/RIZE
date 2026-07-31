@@ -161,7 +161,6 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     return (
       <SwipeToDelete
         key={task.id}
-        tone="paper"
         open={swiped}
         onOpenChange={(open) => setSwipedId(open ? task.id : null)}
         onDelete={() => setTaskToDelete(task)}

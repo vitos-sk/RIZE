@@ -45,10 +45,18 @@
   /* Зерно бумаги: одна SVG-текстура шума, накладывается background-blend-mode:
      multiply — поэтому светлые пиксели прозрачны, а тёмные дают крапинки. */
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
+
+  /* Фон-бумага приложения. Один источник на body и `.paper-canvas`: базовый цвет
+     страницы задан здесь, поэтому бумага видна с первого кадра, ещё до гидрации. */
+  --paper-canvas-color: #e8e1cf;
+  --paper-canvas-image:
+    var(--paper-grain),
+    radial-gradient(130% 90% at 50% -10%, rgb(255 255 255 / 0.55), transparent 62%),
+    radial-gradient(120% 70% at 50% 110%, rgb(140 126 96 / 0.22), transparent 60%);
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
@@ -59,8 +67,10 @@ html {
 }
 
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background-color: var(--paper-canvas-color);
+  background-image: var(--paper-canvas-image);
+  background-blend-mode: multiply, normal, normal;
+  color: var(--color-ink);
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
@@ -111,6 +121,18 @@ textarea,
     background-image:
       radial-gradient(40rem 28rem at 18% -8%, rgb(212 175 55 / 0.13), transparent 64%),
       radial-gradient(34rem 26rem at 82% 104%, rgb(255 255 255 / 0.045), transparent 66%);
+  }
+
+  /* Тёмная подложка для экранов, которые ещё не переведены на бумагу (вход,
+     привычки, заглушки). Фон приложения теперь бумажный, поэтому графит со
+     свечением такие экраны носят с собой, а не получают от оболочки. */
+  .dark-canvas {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(40rem 28rem at 18% -8%, rgb(212 175 55 / 0.13), transparent 64%),
+      radial-gradient(34rem 26rem at 82% 104%, rgb(255 255 255 / 0.045), transparent 66%);
+    color: var(--color-fg);
+    color-scheme: dark;
   }
 
   /* Основная стеклянная карточка. */
@@ -200,11 +222,8 @@ textarea,
      Отсюда пара «.paper-sheet (позиционирование) + .paper-sheet-bg (фон)». */
 
   .paper-canvas {
-    background-color: #e8e1cf;
-    background-image:
-      var(--paper-grain),
-      radial-gradient(130% 90% at 50% -10%, rgb(255 255 255 / 0.55), transparent 62%),
-      radial-gradient(120% 70% at 50% 110%, rgb(140 126 96 / 0.22), transparent 60%);
+    background-color: var(--paper-canvas-color);
+    background-image: var(--paper-canvas-image);
     background-blend-mode: multiply, normal, normal;
     color: var(--color-ink);
   }
@@ -271,6 +290,12 @@ textarea,
 
   .paper-line {
     background-color: var(--color-paper-line);
+  }
+
+  /* Трек прогресс-бара на бумаге: продавленная в листе бороздка. */
+  .paper-inset {
+    background-color: rgb(120 108 86 / 0.2);
+    box-shadow: inset 0 1px 2px rgb(72 60 38 / 0.2);
   }
 
   /* Поле ввода на бумаге — не рамка, а строка с подчёркиванием; фокус подчёркивает зелёным. */
