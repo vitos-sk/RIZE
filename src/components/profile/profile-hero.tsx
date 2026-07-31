@@ -4,10 +4,9 @@ interface ProfileHeroProps {
   displayName: string;
   email: string;
   memberSince: string;
-  level: number;
-  /** Прогресс до следующего уровня, % — рисуется кольцом вокруг аватара. */
-  levelPercent: number;
   currentStreak: number;
+  /** % выполнения плана за всё время — кольцо вокруг аватара. */
+  ratePercent: number;
 }
 
 const RING_RADIUS = 52;
@@ -17,17 +16,16 @@ export function ProfileHero({
   displayName,
   email,
   memberSince,
-  level,
-  levelPercent,
   currentStreak,
+  ratePercent,
 }: ProfileHeroProps) {
   const initial = displayName.trim().charAt(0).toUpperCase() || "?";
-  const dash = (RING_LENGTH * Math.min(100, Math.max(0, levelPercent))) / 100;
+  const dash = (RING_LENGTH * Math.min(100, Math.max(0, ratePercent))) / 100;
 
   return (
     <div className="flex flex-col items-center gap-1.5 pt-2 text-center">
       <div className="relative h-28 w-28">
-        {/* Кольцо показывает тот же прогресс уровня, что и карточка ниже. */}
+        {/* Кольцо — то же % плана, что в карточке ниже: единственная цифра, которой меряется профиль. */}
         <svg viewBox="0 0 112 112" className="absolute inset-0 h-full w-full -rotate-90">
           <circle cx="56" cy="56" r={RING_RADIUS} fill="none" stroke="rgb(255 255 255 / 0.12)" strokeWidth="4" />
           <circle
@@ -45,10 +43,6 @@ export function ProfileHero({
         <div className="glass-chip absolute inset-2 flex items-center justify-center rounded-full bg-gradient-to-b from-gold/25 to-white/5 shadow-[0_0_32px_-4px_rgba(212,175,55,0.45)]">
           <span className="text-4xl font-extrabold text-gold">{initial}</span>
         </div>
-
-        <span className="glass-gold absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-bg/80 text-sm font-bold text-bg">
-          {level}
-        </span>
       </div>
 
       <h2 className="mt-2 text-xl font-bold text-fg">{displayName}</h2>

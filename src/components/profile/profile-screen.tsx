@@ -3,15 +3,17 @@
 import { useMemo, useState } from "react";
 import { Pencil } from "lucide-react";
 import { ProfileHero } from "@/components/profile/profile-hero";
-import { LevelCard } from "@/components/profile/level-card";
+import { LifetimeSummary } from "@/components/profile/lifetime-summary";
+import { YearHeatmap } from "@/components/profile/year-heatmap";
+import { WeekdayProfile } from "@/components/profile/weekday-profile";
+import { PeakHoursCard } from "@/components/profile/peak-hours-card";
+import { TaskReliabilityCard } from "@/components/profile/task-reliability-card";
 import { StatsGrid } from "@/components/profile/stats-grid";
-import { AchievementsRow } from "@/components/profile/achievements-row";
 import { AccountCard } from "@/components/profile/account-card";
 import { EditProfileSheet } from "@/components/profile/edit-profile-sheet";
 import { sendPasswordReset, signOutUser, updateDisplayName } from "@/lib/firebase/auth";
 import { updateUserDoc } from "@/lib/firebase/users";
-import { buildProfileSummary } from "@/lib/logic/profile";
-import { buildAchievements, unlockedCount } from "@/lib/logic/achievements";
+import { buildProfileInsights } from "@/lib/logic/profile";
 import type { FokusUser } from "@/types/user";
 import type { Task } from "@/types/task";
 import type { Log } from "@/types/log";
@@ -28,8 +30,7 @@ interface ProfileScreenProps {
 export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: ProfileScreenProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const summary = useMemo(() => buildProfileSummary(user, logs, tasks), [user, logs, tasks]);
-  const achievements = useMemo(() => buildAchievements(summary), [summary]);
+  const insights = useMemo(() => buildProfileInsights(user, logs, tasks), [user, logs, tasks]);
 
   const displayName = user?.displayName?.trim() || fallbackName;
 
@@ -56,17 +57,26 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
         <ProfileHero
           displayName={displayName}
           email={email}
-          memberSince={summary.memberSince}
-          level={summary.level.level}
-          levelPercent={summary.level.percent}
-          currentStreak={summary.currentStreak}
+          memberSince={insights.memberSince}
+          currentStreak={insights.totals.streak}
+          ratePercent={insights.totals.rate}
         />
 
-        <LevelCard progress={summary.level} totalXP={summary.totalXP} />
+        <LifetimeSummary insights={insights} />
 
-        <StatsGrid summary={summary} />
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-bold text-fg">Как ты работаешь</h2>
+          <YearHeatmap heatmap={insights.heatmap} />
+          <WeekdayProfile
+            weekdays={insights.weekdays}
+            best={insights.bestWeekday}
+            worst={insights.worstWeekday}
+          />
+          <PeakHoursCard peak={insights.peak} />
+          <TaskReliabilityCard strongest={insights.strongest} weakest={insights.weakest} />
+        </div>
 
-        <AchievementsRow achievements={achievements} earnedCount={unlockedCount(achievements)} />
+        <StatsGrid insights={insights} />
 
         <AccountCard
           email={email}
@@ -75,7 +85,7 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
         />
 
         <p className="text-center text-xs text-muted">
-          {summary.daysSinceStart} дн. в FokusTracker · {summary.tasksDone} выполнений
+          {insights.daysSinceStart} дн. в FokusTracker · {insights.totals.done} выполнений
         </p>
       </div>
 
