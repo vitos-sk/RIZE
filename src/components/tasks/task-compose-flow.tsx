@@ -5,7 +5,6 @@ import type { ComponentType } from "react";
 import { CalendarDays, ChevronLeft, Clock, Repeat, X, Zap } from "lucide-react";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
-import { categoryDotColor } from "@/components/calendar/category-style";
 import { buildMonthGrid } from "@/lib/logic/calendar";
 import { formatDayMonth, fromDateKey } from "@/lib/logic/date";
 import type { CalendarTaskSummary } from "@/types/calendar";
@@ -35,13 +34,19 @@ const TYPE_OPTIONS: { value: TaskType; label: string; icon: ComponentType<{ clas
   { value: "habit", label: "Привычка", icon: Zap },
 ];
 
-// Приоритет — градация непрозрачности белого, как в priorityBarClass (см. category-style.ts).
-const PRIORITY_OPTIONS: { value: Priority; dot: string; halo: string }[] = [
-  { value: 1, dot: "bg-white/70", halo: "bg-white/15" },
-  { value: 2, dot: "bg-white/45", halo: "bg-white/10" },
-  { value: 3, dot: "bg-white/28", halo: "bg-white/8" },
-  { value: 4, dot: "bg-white/15", halo: "bg-white/5" },
+// Приоритет на бумаге — нажим карандаша: P1 почти чёрный, P4 еле касается листа.
+const PRIORITY_OPTIONS: { value: Priority; dot: string }[] = [
+  { value: 1, dot: "bg-ink/70" },
+  { value: 2, dot: "bg-ink/45" },
+  { value: 3, dot: "bg-ink/25" },
+  { value: 4, dot: "bg-ink/12" },
 ];
+
+/** Задача без категории отмечается серой точкой, остальные — «чернильной» зелёной. */
+function categoryDotClass(category: string): string {
+  const empty = !category || category.toLowerCase() === "без категории";
+  return empty ? "bg-ink-soft/60" : "bg-ink-green";
+}
 
 interface TaskComposeFlowProps {
   categories: string[];
@@ -151,226 +156,262 @@ export function TaskComposeFlow({
 
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-black/50 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="glass-bar absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto rounded-t-3xl border-t px-5 pb-6 pt-3">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
+      <div className="paper-sheet absolute inset-x-0 bottom-0 z-40 max-h-[85%] overflow-y-auto">
+        <div className="paper-sheet-bg absolute inset-0 rounded-t-[3px]" aria-hidden="true" />
 
-        <div className="mb-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={isFirstStep ? onClose : goBack}
-            aria-label={isFirstStep ? "Закрыть" : "Назад"}
-            className="glass-chip rounded-full p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-fg"
-          >
-            {isFirstStep ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-          </button>
-          <div className="flex flex-col items-center">
-            <h2 className="text-sm font-bold text-fg">{STEP_TITLE[step]}</h2>
-            <span className="text-[11px] text-muted">Шаг {STEP_INDEX[step]} из 3</span>
-          </div>
-          <div className="h-8 w-8" />
-        </div>
+        <div className="relative px-5 pt-3 pb-6">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
-        {step === "date" && (
-          <div>
-            <CalendarHeader
-              year={cursor.year}
-              month={cursor.month}
-              onPrev={() => changeMonth(-1)}
-              onNext={() => changeMonth(1)}
-            />
-            <div className="mt-3">
-              <CalendarGrid compact grid={grid} selectedDate={selectedDate} onSelectDate={pickDate} />
-            </div>
+          <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => pickDate(null)}
-              className="glass-soft mt-3 w-full rounded-xl px-4 py-2.5 text-center text-sm font-medium text-muted transition-colors hover:text-fg"
+              onClick={isFirstStep ? onClose : goBack}
+              aria-label={isFirstStep ? "Закрыть" : "Назад"}
+              className="paper-chip-bg rounded-full p-1.5 text-ink"
             >
-              Без конкретного дня
+              {isFirstStep ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
+            <div className="flex flex-col items-center">
+              <h2 className="font-hand text-2xl leading-none font-bold text-ink">
+                {STEP_TITLE[step]}
+              </h2>
+              <span className="mt-1 font-note text-xs text-ink-soft">
+                Шаг {STEP_INDEX[step]} из 3
+              </span>
+            </div>
+            <div className="h-8 w-8" />
           </div>
-        )}
 
-        {step === "category" && (
-          <ul className="flex flex-col gap-2.5">
-            {categoryOptions.map((cat) => (
-              <li key={cat}>
-                <button
-                  type="button"
-                  onClick={() => chooseCategory(cat)}
-                  className="glass-soft flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-medium text-fg transition-colors hover:border-gold/60"
-                >
-                  <span className={`h-2 w-2 shrink-0 rounded-full ${categoryDotColor(cat)}`} />
-                  {cat}
-                </button>
-              </li>
-            ))}
-            <li>
-              <button
-                type="button"
-                onClick={() => setCustomCategoryActive(true)}
-                aria-pressed={customCategoryActive}
-                className={`glass-soft w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition-colors ${
-                  customCategoryActive ? "border-gold/60 bg-gold/15 text-gold" : "text-fg hover:border-gold/60"
-                }`}
-              >
-                Своё
-              </button>
-            </li>
-            {customCategoryActive && (
-              <li className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  value={customCategory}
-                  onChange={(event) => setCustomCategory(event.target.value)}
-                  placeholder="Название категории"
-                  autoFocus
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      confirmCustomCategory();
-                    }
-                  }}
-                  className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
-                />
-                <button
-                  type="button"
-                  onClick={confirmCustomCategory}
-                  disabled={!customCategory.trim()}
-                  className="glass-gold flex w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-bg disabled:opacity-50"
-                >
-                  Далее
-                </button>
-              </li>
-            )}
-          </ul>
-        )}
-
-        {step === "form" && (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleSubmit();
-            }}
-            className="flex flex-col gap-5"
-          >
-            <input
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Название задачи..."
-              autoFocus
-              className="glass-field w-full rounded-xl px-4 py-3 text-sm text-fg outline-none placeholder:text-muted"
-            />
-
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-muted">Тип</span>
-              <div className="flex items-center gap-2">
-                {TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setType(value)}
-                    aria-pressed={type === value}
-                    className={`glass-soft flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors ${
-                      type === value ? "border-gold/60 bg-gold/15 text-gold" : "text-muted"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {label}
-                  </button>
-                ))}
+          {step === "date" && (
+            <div>
+              <CalendarHeader
+                tone="paper"
+                year={cursor.year}
+                month={cursor.month}
+                onPrev={() => changeMonth(-1)}
+                onNext={() => changeMonth(1)}
+              />
+              <div className="mt-3">
+                <CalendarGrid compact grid={grid} selectedDate={selectedDate} onSelectDate={pickDate} />
               </div>
-            </div>
-
-            {/* Срок есть только у разовых задач — у ежедневок и привычек его заменяет расписание. */}
-            {type === "once" && (
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-medium text-muted">Срок</span>
-                <div className="glass-soft flex items-center gap-2.5 rounded-xl px-4 py-3">
-                  <CalendarDays className="h-4 w-4 shrink-0 text-muted" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReturnToForm(true);
-                      setStep("date");
-                    }}
-                    className={`min-w-0 flex-1 truncate text-left text-sm font-medium ${
-                      selectedDate ? "text-fg" : "text-muted"
-                    }`}
-                  >
-                    {selectedDate ? formatDayMonth(selectedDate) : "Без срока"}
-                  </button>
-                  {selectedDate && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDate(null)}
-                      aria-label="Убрать срок"
-                      className="shrink-0 text-muted transition-colors hover:text-fg"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-muted">Приоритет</span>
-              <div className="flex items-center gap-3">
-                {PRIORITY_OPTIONS.map(({ value, dot, halo }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setPriority(value)}
-                    aria-pressed={priority === value}
-                    aria-label={`Приоритет P${value}`}
-                    className={`flex h-11 w-11 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${
-                      priority === value ? "glass-chip border-gold bg-white/5 text-fg" : "border-transparent text-muted"
-                    }`}
-                  >
-                    <span className={`glass-chip flex h-8 w-8 items-center justify-center rounded-full ${halo}`}>
-                      <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
-                    </span>
-                  </button>
-                ))}
-                <span className="ml-1 text-xs text-muted">P{priority}</span>
-              </div>
-            </div>
-
-            {type === "habit" && (
-              <button
-                type="button"
-                onClick={() => setIsNegative((prev) => !prev)}
-                aria-pressed={isNegative}
-                className="glass-soft flex items-center justify-between rounded-xl px-4 py-3"
-              >
-                <span className="text-sm font-medium text-fg">Плохая привычка</span>
-                <span
-                  className={`glass-inset relative h-6 w-11 rounded-full transition-colors ${
-                    isNegative ? "bg-danger" : "bg-white/10"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-fg transition-transform ${
-                      isNegative ? "translate-x-5.5" : "translate-x-0.5"
-                    }`}
-                  />
+              <button type="button" onClick={() => pickDate(null)} className="paper-sheet mt-4 w-full">
+                <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+                <span className="relative block py-3 text-center font-note text-[0.95rem] text-ink-soft">
+                  Без конкретного дня
                 </span>
               </button>
-            )}
+            </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={!title.trim()}
-              className="glass-gold flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-bold text-bg transition-transform active:scale-[0.98] disabled:opacity-50"
+          {step === "category" && (
+            <ul className="flex flex-col gap-3">
+              {categoryOptions.map((cat) => (
+                <li key={cat}>
+                  <button type="button" onClick={() => chooseCategory(cat)} className="paper-sheet w-full">
+                    <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+                    <span className="relative flex w-full items-center gap-2.5 px-4 py-3 text-left font-note text-[1rem] text-ink">
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${categoryDotClass(cat)}`}
+                        aria-hidden="true"
+                      />
+                      {cat}
+                    </span>
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setCustomCategoryActive(true)}
+                  aria-pressed={customCategoryActive}
+                  className="paper-sheet w-full"
+                >
+                  <span
+                    className={`absolute inset-0 ${
+                      customCategoryActive ? "paper-chip-bg-olive" : "paper-chip-bg"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={`relative block px-4 py-3 text-left font-note text-[1rem] ${
+                      customCategoryActive ? "font-bold text-ink" : "text-ink"
+                    }`}
+                  >
+                    Своё
+                  </span>
+                </button>
+              </li>
+              {customCategoryActive && (
+                <li className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    value={customCategory}
+                    onChange={(event) => setCustomCategory(event.target.value)}
+                    placeholder="Название категории"
+                    autoFocus
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        confirmCustomCategory();
+                      }
+                    }}
+                    className="paper-field w-full rounded-sm px-4 py-3 font-note text-[1rem] text-ink outline-none placeholder:text-ink-soft"
+                  />
+                  <button
+                    type="button"
+                    onClick={confirmCustomCategory}
+                    disabled={!customCategory.trim()}
+                    className="paper-sheet w-full disabled:opacity-50"
+                  >
+                    <span className="paper-chip-bg-olive absolute inset-0" aria-hidden="true" />
+                    <span className="relative block py-3 text-center font-note text-[1rem] font-bold text-ink">
+                      Далее
+                    </span>
+                  </button>
+                </li>
+              )}
+            </ul>
+          )}
+
+          {step === "form" && (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleSubmit();
+              }}
+              className="flex flex-col gap-5"
             >
-              Добавить
-            </button>
-          </form>
-        )}
+              <input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Название задачи..."
+                autoFocus
+                className="paper-field w-full rounded-sm px-4 py-3 font-note text-[1.05rem] text-ink outline-none placeholder:text-ink-soft"
+              />
+
+              <div className="flex flex-col gap-2.5">
+                <span className="font-note text-xs text-ink-soft">Тип</span>
+                <div className="flex items-center gap-2.5">
+                  {TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setType(value)}
+                      aria-pressed={type === value}
+                      className="paper-sheet flex-1"
+                    >
+                      <span
+                        className={`absolute inset-0 ${
+                          type === value ? "paper-chip-bg-olive" : "paper-chip-bg"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className={`relative flex items-center justify-center gap-1.5 px-2 py-2 font-note text-xs ${
+                          type === value ? "font-bold text-ink" : "text-ink-soft"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Срок есть только у разовых задач — у ежедневок и привычек его заменяет расписание. */}
+              {type === "once" && (
+                <div className="flex flex-col gap-2.5">
+                  <span className="font-note text-xs text-ink-soft">Срок</span>
+                  <div className="paper-field flex items-center gap-2.5 rounded-sm px-4 py-3">
+                    <CalendarDays className="h-4 w-4 shrink-0 text-ink-soft" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReturnToForm(true);
+                        setStep("date");
+                      }}
+                      className={`min-w-0 flex-1 truncate text-left font-note text-[1rem] ${
+                        selectedDate ? "text-ink" : "text-ink-soft"
+                      }`}
+                    >
+                      {selectedDate ? formatDayMonth(selectedDate) : "Без срока"}
+                    </button>
+                    {selectedDate && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDate(null)}
+                        aria-label="Убрать срок"
+                        className="shrink-0 text-ink-soft transition-colors hover:text-ink"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2.5">
+                <span className="font-note text-xs text-ink-soft">Приоритет</span>
+                <div className="flex items-center gap-3">
+                  {PRIORITY_OPTIONS.map(({ value, dot }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setPriority(value)}
+                      aria-pressed={priority === value}
+                      aria-label={`Приоритет P${value}`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-colors ${
+                        priority === value ? "border-ink-green bg-paper/50" : "border-transparent"
+                      }`}
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-paper/70">
+                        <span className={`h-3 w-3 rounded-full ${dot}`} />
+                      </span>
+                    </button>
+                  ))}
+                  <span className="ml-1 font-note text-xs text-ink-soft">P{priority}</span>
+                </div>
+              </div>
+
+              {type === "habit" && (
+                <button
+                  type="button"
+                  onClick={() => setIsNegative((prev) => !prev)}
+                  aria-pressed={isNegative}
+                  className="paper-field flex items-center justify-between rounded-sm px-4 py-3"
+                >
+                  <span className="font-note text-[1rem] text-ink">Плохая привычка</span>
+                  <span
+                    className={`relative h-6 w-11 rounded-full transition-colors ${
+                      isNegative ? "bg-ink-red" : "bg-ink/15"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-paper transition-transform ${
+                        isNegative ? "translate-x-5.5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </span>
+                </button>
+              )}
+
+              <button
+                type="submit"
+                disabled={!title.trim()}
+                className="paper-sheet w-full transition-transform active:scale-[0.98] disabled:opacity-50"
+              >
+                <span className="paper-chip-bg-olive absolute inset-0" aria-hidden="true" />
+                <span className="relative block py-3.5 text-center font-note text-[1.05rem] font-bold text-ink">
+                  Добавить
+                </span>
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </>
   );
