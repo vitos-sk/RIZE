@@ -18,11 +18,12 @@ const GREEN = "#8fb87a"; // --color-ink-green
 
 /**
  * @param {object} options
- * @param {number} options.radius   скругление внешнего квадрата (0 — под маску Android)
- * @param {number} options.scale    масштаб контента: у maskable-иконки края съедает маска,
- *                                  поэтому лист ужимается в safe zone (внутренние 80%)
+ * @param {number} options.radius       скругление внешнего квадрата (0 — под маску системы)
+ * @param {number} options.scale        масштаб контента: если края съедает маска
+ *                                      (Android maskable, iOS), лист ужимается внутрь
+ * @param {number} [options.sheetRadius] скругление самого листа
  */
-function buildSvg({ radius, scale }) {
+function buildSvg({ radius, scale, sheetRadius = Math.max(radius - 18, 16) }) {
   const holes = [130, 232, 334, 436]
     .map(
       (cy) =>
@@ -40,7 +41,7 @@ function buildSvg({ radius, scale }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="${radius}" fill="${CANVAS}" />
   <g transform="translate(256 256) scale(${scale}) translate(-256 -256)">
-      <rect x="18" y="18" width="476" height="476" rx="${Math.max(radius - 18, 16)}" fill="${PAPER}" />
+      <rect x="18" y="18" width="476" height="476" rx="${sheetRadius}" fill="${PAPER}" />
       <path d="M60 26 H452" stroke="#fff6e6" stroke-opacity="0.1" stroke-width="5" stroke-linecap="round" />
       ${holes}
       <path d="M112 74 V438" stroke="${LINE}" stroke-width="4" stroke-linecap="round" />
@@ -79,10 +80,20 @@ function pngToIco(png, size) {
 
 const roundedSvg = buildSvg({ radius: 104, scale: 1 });
 const maskableSvg = buildSvg({ radius: 0, scale: 0.78 });
-const squareSvg = buildSvg({ radius: 0, scale: 1 });
+// iOS сам режет иконку своим сквирклом и рисует её на весь квадрат: скруглять исходник
+// нельзя (углы станут чёрными), а лист надо ужать, иначе маска срежет его края.
+const appleSvg = buildSvg({ radius: 0, scale: 0.9, sheetRadius: 88 });
 
 const render = (svg, size) =>
   sharp(Buffer.from(svg)).resize(size, size).png({ compressionLevel: 9 }).toBuffer();
+
+// iOS игнорирует альфа-канал и подкладывает под него чёрный: сводим на фон приложения.
+const renderOpaque = (svg, size) =>
+  sharp(Buffer.from(svg))
+    .resize(size, size)
+    .flatten({ background: CANVAS })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
 
 await mkdir(path.join(root, "public"), { recursive: true });
 
@@ -92,8 +103,19 @@ await write("public/app-icon.svg", roundedSvg);
 await write("public/icon-192.png", await render(roundedSvg, 192));
 await write("public/icon-512.png", await render(roundedSvg, 512));
 await write("public/icon-maskable-512.png", await render(maskableSvg, 512));
-// iOS сам скругляет apple-touch-icon и не умеет прозрачность — отдаём полный квадрат.
-await write("public/apple-touch-icon.png", await render(squareSvg, 180));
 await write("src/app/favicon.ico", pngToIco(await render(roundedSvg, 64), 64));
+
+// Размеры под разные устройства Apple: 180 — iPhone @3x, 167 — iPad Pro, 152 — iPad,
+// 120 — iPhone @2x. Safari берёт ближайший подходящий, лишнего не скачивает.
+for (const size of [180, 167, 152, 120]) {
+  await write(`public/apple-touch-icon-${size}.png`, await renderOpaque(appleSvg, size));
+}
+// Файл без размера в имени — запасной путь: Safari дёргает /apple-touch-icon.png
+// из корня сам, даже если <link> в разметке не нашёлся.
+await write("public/apple-touch-icon.png", await renderOpaque(appleSvg, 180));
+await write(
+  "public/apple-touch-icon-precomposed.png",
+  await renderOpaque(appleSvg, 180),
+);
 
 console.log("Иконки сгенерированы.");

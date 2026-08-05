@@ -10,6 +10,8 @@ import { deleteCategory } from "@/lib/firebase/categories";
 import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
 import { NO_CATEGORY, isDeletableCategory, mergeCategoryNames } from "@/lib/logic/categories";
 import { fromDateKey } from "@/lib/logic/date";
+import { plural } from "@/lib/logic/plural";
+import { buildTaskTotals } from "@/lib/logic/task-totals";
 import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
 import type { Category } from "@/types/category";
@@ -53,17 +55,8 @@ function formatDue(dateKey: string): string {
 function categoryDeleteDescription(count: number): string {
   if (count === 0) return "В категории нет задач — удаление ничего больше не затронет.";
 
-  const mod100 = count % 100;
-  const mod10 = count % 10;
-  const noun =
-    mod100 >= 11 && mod100 <= 14
-      ? "задач"
-      : mod10 === 1
-        ? "задача"
-        : mod10 >= 2 && mod10 <= 4
-          ? "задачи"
-          : "задач";
-  const verb = mod100 >= 11 && mod100 <= 14 ? "переедут" : mod10 === 1 ? "переедет" : "переедут";
+  const noun = plural(count, ["задача", "задачи", "задач"]);
+  const verb = plural(count, ["переедет", "переедут", "переедут"]);
 
   return `${count} ${noun} ${verb} в «${NO_CATEGORY}». История выполнений сохранится, статистика не изменится.`;
 }
@@ -162,6 +155,11 @@ export function TasksScreen({ uid, tasks, categories, todayKey }: TasksScreenPro
   }
 
   const categoryNames = useMemo(() => mergeCategoryNames(categories, tasks), [categories, tasks]);
+
+  const visibleTotals = useMemo(
+    () => buildTaskTotals(filter === "all" ? tasks : tasks.filter((task) => task.type === filter)),
+    [tasks, filter],
+  );
 
   const initialCursor = useMemo(() => {
     const date = fromDateKey(todayKey);
@@ -299,8 +297,17 @@ export function TasksScreen({ uid, tasks, categories, todayKey }: TasksScreenPro
         <header className="flex items-start justify-between gap-3">
           <div>
             <h1 className="font-hand text-[2.6rem] leading-none font-bold text-ink">Задачи</h1>
+            {/* Живой счётчик вместо девиза: считает то, что реально видно под текущим фильтром. */}
             <p className="mt-1.5 font-note text-sm text-ink-soft">
-              Планируй день и достигай целей
+              {visibleTotals.total > 0 ? (
+                <>
+                  <span className="font-bold text-ink">{visibleTotals.total}</span>{" "}
+                  {plural(visibleTotals.total, ["задача", "задачи", "задач"])} ·{" "}
+                  {visibleTotals.active} {plural(visibleTotals.active, ["активная", "активные", "активных"])}
+                </>
+              ) : (
+                "Планируй день и достигай целей"
+              )}
             </p>
           </div>
 

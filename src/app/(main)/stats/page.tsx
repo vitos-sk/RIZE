@@ -6,7 +6,9 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { subscribeRecentLogs } from "@/lib/firebase/logs";
 import { subscribeAllTasks } from "@/lib/firebase/tasks";
 import { buildStatsScreen, STATS_HISTORY_DAYS } from "@/lib/logic/stats";
+import { buildTaskTotals } from "@/lib/logic/task-totals";
 import { PeriodTabs, type Period } from "@/components/stats/period-tabs";
+import { TaskTotalsCard } from "@/components/stats/task-totals-card";
 import { CompletionSummaryCard } from "@/components/stats/completion-summary-card";
 import { CompletionChart } from "@/components/stats/completion-chart";
 import { QualityRow } from "@/components/stats/quality-row";
@@ -33,6 +35,9 @@ export default function StatsPage() {
   }, [user]);
 
   const data = useMemo(() => buildStatsScreen(logs, tasks, period), [logs, tasks, period]);
+  // Считается по самим задачам, а не по логам, и от периода не зависит — поэтому
+  // отдельный useMemo, а не поле в `buildStatsScreen`.
+  const taskTotals = useMemo(() => buildTaskTotals(tasks), [tasks]);
 
   if (!user) return null;
 
@@ -53,6 +58,11 @@ export default function StatsPage() {
             </span>
           </button>
         </header>
+
+        {/* Инвентарь стоит ВЫШЕ переключателя периода намеренно: он считает все
+            заведённые задачи за всё время и на период не реагирует — под вкладками
+            он читался бы как «столько задач за неделю». */}
+        <TaskTotalsCard totals={taskTotals} />
 
         <PeriodTabs value={period} onChange={setPeriod} />
 

@@ -6,10 +6,13 @@ import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { subscribeAllTasks, subscribeTodayTasks } from "@/lib/firebase/tasks";
 import { subscribeRecentLogs } from "@/lib/firebase/logs";
+import { subscribeProjects } from "@/lib/firebase/projects";
 import { buildDashboardKpi } from "@/lib/logic/dashboard";
 import { KpiRow } from "@/components/dashboard/kpi-row";
+import { ProjectsCard } from "@/components/dashboard/projects-card";
 import { TodayTasks } from "@/components/dashboard/today-tasks";
 import type { Period } from "@/components/stats/period-tabs";
+import type { Project } from "@/types/project";
 import type { Task } from "@/types/task";
 import type { Log } from "@/types/log";
 
@@ -21,6 +24,7 @@ export default function DashboardPage() {
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [logs, setLogs] = useState<Log[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [period, setPeriod] = useState<Period>("week");
 
   useEffect(() => {
@@ -28,10 +32,12 @@ export default function DashboardPage() {
     const unsubTodayTasks = subscribeTodayTasks(user.uid, setTodayTasks);
     const unsubAllTasks = subscribeAllTasks(user.uid, setAllTasks);
     const unsubLogs = subscribeRecentLogs(user.uid, LOG_HISTORY_DAYS, setLogs);
+    const unsubProjects = subscribeProjects(user.uid, setProjects);
     return () => {
       unsubTodayTasks();
       unsubAllTasks();
       unsubLogs();
+      unsubProjects();
     };
   }, [user]);
 
@@ -64,6 +70,7 @@ export default function DashboardPage() {
         </header>
 
         <TodayTasks uid={user.uid} tasks={todayTasks} />
+        <ProjectsCard projects={projects} tasks={allTasks} />
         <KpiRow
           done={kpi.done}
           planned={kpi.planned}

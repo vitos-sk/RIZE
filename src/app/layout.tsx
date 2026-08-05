@@ -33,12 +33,26 @@ export const metadata: Metadata = {
   // iOS не читает манифест: иконку для «Добавить на экран «Домой»» он берёт только
   // из apple-touch-icon, а название под ней — из appleWebApp.title.
   icons: {
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon-167.png", sizes: "167x167", type: "image/png" },
+      { url: "/apple-touch-icon-152.png", sizes: "152x152", type: "image/png" },
+      { url: "/apple-touch-icon-120.png", sizes: "120x120", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
     title: "FokusTracker",
     statusBarStyle: "black",
+  },
+  other: {
+    // Next отдаёт только современный `mobile-web-app-capable`; iOS до 17 знает
+    // исключительно этот тег, без него ярлык открывается в Safari с адресной строкой.
+    "apple-mobile-web-app-capable": "yes",
   },
 };
 
