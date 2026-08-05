@@ -1,62 +1,49 @@
 @import "tailwindcss";
 
-/* Палитра однотонная: тёплый графит + единственный акцент (золото).
-   Цветных категорий/приоритетов нет — иерархия строится прозрачностью белого. */
+/* Палитра ровно одна — тёмная бумага. Золото/стекло из прежней темы удалены:
+   акцент теперь зелёные чернила, провал — красные. */
 @theme {
-  --color-bg: #0c0b0a;
-  --color-card: #171513;
-  --color-border: #272421;
-  --color-fg: #f4f2ef;
-  --color-muted: #918b83;
-  --color-gold: #d4af37;
-  /* Единственный цвет кроме золота: красный на отрицательном XP, срыве и удалении.
-     Зелёного нет намеренно — «хорошо» показывается золотом. */
-  --color-danger: #e5484d;
-
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Бумажная тема (пока только Главная + таб-бар): крафтовый лист, карандаш и
-     три «чернильных» цвета — зелёный, красный, индиго. Живёт отдельно от
-     тёмного стекла: остальные экраны продолжают пользоваться палитрой выше. */
-  --color-paper: #f4efe3;
-  --color-paper-deep: #e7e0cd;
-  --color-paper-line: #cfc5ad;
-  --color-ink: #35302a;
-  --color-ink-soft: #8b8275;
-  --color-ink-green: #4b7a45;
-  --color-ink-red: #b4453f;
-  --color-ink-indigo: #4a45a5;
-  --color-olive: #adb18f;
+  /* Бумажная тема — ТЁМНАЯ: не крафтовый лист, а лист тёмного сланца/угля.
+     «Чернила» стали светлыми (кремовый мел), акцент — зелёный, провал — красный.
+     Имена токенов сохранены: `paper` = поверхность листа, `ink` = то, чем пишут. */
+  --color-paper: #2f2823;
+  --color-paper-deep: #241e1a;
+  --color-paper-line: #4a413a;
+  --color-ink: #ece4d7;
+  --color-ink-soft: #a2988a;
+  --color-ink-green: #8fb87a;
+  --color-ink-red: #cd6560;
+  --color-ink-indigo: #9791dd;
+  /* Оливковый ярлык (активная вкладка, кнопка входа) заметно темнее зелёных
+     чернил — иначе текст на нём сливается с заливкой. */
+  --color-olive: #44592f;
 
   --font-hand: var(--font-caveat);
   --font-note: var(--font-neucha);
 }
 
-/* Матовое стекло: единые токены на все поверхности приложения. */
 :root {
-  --glass-tint-top: rgb(255 255 255 / 0.09);
-  --glass-tint-bottom: rgb(255 255 255 / 0.025);
-  --glass-base: rgb(23 21 19 / 0.42);
-  --glass-edge: rgb(255 255 255 / 0.12);
-  --glass-highlight: rgb(255 255 255 / 0.1);
-  --glass-shadow: 0 12px 34px -16px rgb(0 0 0 / 0.8);
+  /* Зерно бумаги: одна SVG-текстура шума. На тёмном листе она кладётся
+     background-blend-mode: screen — тёмные пиксели шума прозрачны, светлые дают
+     крапинки-«песчинки», как на сланце. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.14'/%3E%3C/svg%3E");
 
-  /* Зерно бумаги: одна SVG-текстура шума, накладывается background-blend-mode:
-     multiply — поэтому светлые пиксели прозрачны, а тёмные дают крапинки. */
-  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
-
-  /* Фон-бумага приложения. Один источник на body и `.paper-canvas`: базовый цвет
-     страницы задан здесь, поэтому бумага видна с первого кадра, ещё до гидрации. */
-  --paper-canvas-color: #e8e1cf;
+  /* Фон приложения. Один источник на body и `.paper-canvas`: базовый цвет
+     страницы задан здесь, поэтому тёмный лист виден с первого кадра, ещё до
+     гидрации, и светлой вспышки при запуске нет. */
+  --paper-canvas-color: #1a1512;
   --paper-canvas-image:
     var(--paper-grain),
-    radial-gradient(130% 90% at 50% -10%, rgb(255 255 255 / 0.55), transparent 62%),
-    radial-gradient(120% 70% at 50% 110%, rgb(140 126 96 / 0.22), transparent 60%);
+    radial-gradient(130% 90% at 50% -10%, rgb(255 246 230 / 0.05), transparent 62%),
+    radial-gradient(120% 70% at 50% 110%, rgb(0 0 0 / 0.45), transparent 60%);
+  --paper-canvas-blend: screen, normal, normal;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
@@ -69,7 +56,7 @@ html {
 body {
   background-color: var(--paper-canvas-color);
   background-image: var(--paper-canvas-image);
-  background-blend-mode: multiply, normal, normal;
+  background-blend-mode: var(--paper-canvas-blend);
   color: var(--color-ink);
   height: 100%;
   overflow: hidden;
@@ -115,106 +102,6 @@ textarea,
 }
 
 @layer components {
-  /* Фоновое свечение под стеклом — без него блюр не за что зацепиться.
-     Одно золотое пятно сверху + нейтральное снизу: цвета в фоне быть не должно. */
-  .app-aurora {
-    background-image:
-      radial-gradient(40rem 28rem at 18% -8%, rgb(212 175 55 / 0.13), transparent 64%),
-      radial-gradient(34rem 26rem at 82% 104%, rgb(255 255 255 / 0.045), transparent 66%);
-  }
-
-  /* Тёмная подложка для экранов, которые ещё не переведены на бумагу (вход,
-     привычки, заглушки). Фон приложения теперь бумажный, поэтому графит со
-     свечением такие экраны носят с собой, а не получают от оболочки. */
-  .dark-canvas {
-    background-color: var(--color-bg);
-    background-image:
-      radial-gradient(40rem 28rem at 18% -8%, rgb(212 175 55 / 0.13), transparent 64%),
-      radial-gradient(34rem 26rem at 82% 104%, rgb(255 255 255 / 0.045), transparent 66%);
-    color: var(--color-fg);
-    color-scheme: dark;
-  }
-
-  /* Основная стеклянная карточка. */
-  .glass {
-    background-color: var(--glass-base);
-    background-image: linear-gradient(155deg, var(--glass-tint-top), var(--glass-tint-bottom));
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid var(--glass-edge);
-    box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-highlight);
-  }
-
-  /* Вложенные поверхности (строки списков, ячейки) — легче, чтобы не давить. */
-  .glass-soft {
-    background-color: rgb(255 255 255 / 0.05);
-    backdrop-filter: blur(10px) saturate(135%);
-    -webkit-backdrop-filter: blur(10px) saturate(135%);
-    border: 1px solid rgb(255 255 255 / 0.09);
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.07);
-  }
-
-  /* Навбар и шторки — блюр сильнее: под ними едет контент. */
-  .glass-bar {
-    background-color: rgb(12 11 10 / 0.62);
-    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02));
-    backdrop-filter: blur(26px) saturate(165%);
-    -webkit-backdrop-filter: blur(26px) saturate(165%);
-    border-color: rgb(255 255 255 / 0.1);
-    box-shadow: 0 -10px 34px -14px rgb(0 0 0 / 0.85), inset 0 1px 0 0 rgb(255 255 255 / 0.1);
-  }
-
-  /* Плавающий док таб-бара: висит в воздухе, поэтому плотнее и мутнее шторок. */
-  .glass-dock {
-    background-color: rgb(7 6 6 / 0.94);
-    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01));
-    backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
-    -webkit-backdrop-filter: blur(34px) saturate(150%) brightness(0.8);
-    border: 1px solid rgb(255 255 255 / 0.1);
-    box-shadow:
-      0 18px 40px -14px rgb(0 0 0 / 0.95),
-      inset 0 1px 0 0 rgb(255 255 255 / 0.08);
-  }
-
-  /* Только блюр и блик — фон берётся из цветной утилиты рядом (бейджи, чипы). */
-  .glass-chip {
-    backdrop-filter: blur(8px) saturate(140%);
-    -webkit-backdrop-filter: blur(8px) saturate(140%);
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.08);
-  }
-
-  /* Углубление: треки прогресс-баров. */
-  .glass-inset {
-    background-color: rgb(0 0 0 / 0.35);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.55), inset 0 -1px 0 rgb(255 255 255 / 0.05);
-  }
-
-  /* Поля ввода. */
-  .glass-field {
-    background-color: rgb(255 255 255 / 0.05);
-    backdrop-filter: blur(12px) saturate(135%);
-    -webkit-backdrop-filter: blur(12px) saturate(135%);
-    border: 1px solid rgb(255 255 255 / 0.11);
-    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
-  }
-
-  .glass-field:focus,
-  .glass-field:focus-within {
-    border-color: rgb(212 175 55 / 0.55);
-  }
-
-  /* Золотое стекло для главных действий — плотное, текст остаётся читаемым. */
-  .glass-gold {
-    background-color: rgb(212 175 55 / 0.9);
-    background-image: linear-gradient(160deg, rgb(243 210 122 / 0.95), rgb(176 141 38 / 0.88));
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-    border: 1px solid rgb(255 226 140 / 0.5);
-    box-shadow: 0 12px 30px -12px rgb(212 175 55 / 0.55), inset 0 1px 0 0 rgb(255 255 255 / 0.35);
-  }
-
   /* ─── Бумага ───────────────────────────────────────────────────────────────
      Лист, скотч и перфорация Главной. Рваные края даёт SVG-фильтр
      (<PaperDefs/> в (main)/layout.tsx): он смещает пиксели по шуму, поэтому
@@ -224,8 +111,9 @@ textarea,
   .paper-canvas {
     background-color: var(--paper-canvas-color);
     background-image: var(--paper-canvas-image);
-    background-blend-mode: multiply, normal, normal;
+    background-blend-mode: var(--paper-canvas-blend);
     color: var(--color-ink);
+    color-scheme: dark;
   }
 
   .paper-sheet {
@@ -233,16 +121,18 @@ textarea,
     isolation: isolate;
   }
 
-  /* Фоновый слой листа: цвет + зерно + рваный контур. */
+  /* Фоновый слой листа: цвет + зерно + рваный контур. На тёмном листе объём даёт
+     не тень от белого, а светлая грань сверху и провал тени снизу. */
   .paper-sheet-bg {
     background-color: var(--color-paper);
     background-image:
       var(--paper-grain),
-      linear-gradient(165deg, rgb(255 255 255 / 0.55), rgb(214 203 176 / 0.35));
-    background-blend-mode: multiply, normal;
+      linear-gradient(165deg, rgb(255 246 230 / 0.07), rgb(0 0 0 / 0.22));
+    background-blend-mode: screen, normal;
     box-shadow:
-      0 10px 18px -12px rgb(72 60 38 / 0.55),
-      0 2px 4px -2px rgb(72 60 38 / 0.35);
+      0 12px 22px -12px rgb(0 0 0 / 0.85),
+      0 2px 5px -2px rgb(0 0 0 / 0.6),
+      inset 0 1px 0 0 rgb(255 246 230 / 0.06);
     filter: url(#paper-torn);
   }
 
@@ -251,41 +141,45 @@ textarea,
     background-color: var(--color-paper);
     background-image:
       var(--paper-grain),
-      linear-gradient(170deg, rgb(255 255 255 / 0.6), rgb(214 203 176 / 0.4));
-    background-blend-mode: multiply, normal;
-    box-shadow: 0 4px 8px -5px rgb(72 60 38 / 0.6);
+      linear-gradient(170deg, rgb(255 246 230 / 0.09), rgb(0 0 0 / 0.2));
+    background-blend-mode: screen, normal;
+    box-shadow:
+      0 5px 10px -5px rgb(0 0 0 / 0.8),
+      inset 0 1px 0 0 rgb(255 246 230 / 0.07);
     filter: url(#paper-torn-soft);
   }
 
-  /* Приклеенный кусок оливковой бумаги: активная вкладка и активный период. */
+  /* Приклеенный кусок зелёной бумаги: активная вкладка и активный период. */
   .paper-chip-bg-olive {
     background-color: var(--color-olive);
     background-image:
       var(--paper-grain),
-      linear-gradient(170deg, rgb(255 255 255 / 0.35), rgb(120 124 92 / 0.35));
-    background-blend-mode: multiply, normal;
-    box-shadow: 0 5px 10px -6px rgb(60 58 32 / 0.7);
+      linear-gradient(170deg, rgb(255 255 255 / 0.14), rgb(0 0 0 / 0.25));
+    background-blend-mode: screen, normal;
+    box-shadow:
+      0 6px 12px -6px rgb(0 0 0 / 0.85),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.1);
     filter: url(#paper-torn-soft);
   }
 
-  /* Полоска скотча: полупрозрачная, чуть темнее бумаги, с рваными торцами. */
+  /* Полоска скотча: матовая, светлее листа — единственное светлое пятно на экране. */
   .paper-tape {
     background-image: linear-gradient(
       100deg,
-      rgb(226 216 190 / 0.75),
-      rgb(244 238 222 / 0.55) 35%,
-      rgb(214 202 172 / 0.7)
+      rgb(214 202 176 / 0.42),
+      rgb(238 228 205 / 0.3) 35%,
+      rgb(198 185 158 / 0.4)
     );
-    box-shadow: 0 1px 3px -1px rgb(72 60 38 / 0.35);
+    box-shadow: 0 1px 3px -1px rgb(0 0 0 / 0.6);
     filter: url(#paper-torn-soft);
   }
 
   /* Отверстие перфорации: вырез до фона страницы, край подсвечен снизу. */
   .paper-hole {
-    background-color: #e2dac6;
+    background-color: #171310;
     box-shadow:
-      inset 0 2px 3px rgb(72 60 38 / 0.45),
-      0 1px 0 rgb(255 255 255 / 0.75);
+      inset 0 2px 3px rgb(0 0 0 / 0.85),
+      0 1px 0 rgb(255 246 230 / 0.09);
   }
 
   .paper-line {
@@ -294,13 +188,13 @@ textarea,
 
   /* Трек прогресс-бара на бумаге: продавленная в листе бороздка. */
   .paper-inset {
-    background-color: rgb(120 108 86 / 0.2);
-    box-shadow: inset 0 1px 2px rgb(72 60 38 / 0.2);
+    background-color: rgb(0 0 0 / 0.35);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.5);
   }
 
   /* Поле ввода на бумаге — не рамка, а строка с подчёркиванием; фокус подчёркивает зелёным. */
   .paper-field {
-    background-color: rgb(255 255 255 / 0.4);
+    background-color: rgb(255 246 230 / 0.05);
     box-shadow: inset 0 -1px 0 0 var(--color-paper-line);
   }
 
@@ -313,21 +207,6 @@ textarea,
   .paper-row-bg {
     background-color: var(--color-paper);
     background-image: var(--paper-grain);
-    background-blend-mode: multiply;
-  }
-}
-
-/* Без backdrop-filter (старый Firefox, экономия батареи) стекло становится плотным. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass,
-  .glass-soft,
-  .glass-bar,
-  .glass-field {
-    background-color: rgb(23 21 19 / 0.95);
-  }
-
-  /* Док и без блюра остаётся самой тёмной поверхностью. */
-  .glass-dock {
-    background-color: rgb(7 6 6 / 0.98);
+    background-blend-mode: screen;
   }
 }

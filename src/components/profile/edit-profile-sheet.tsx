@@ -43,7 +43,7 @@ export function EditProfileSheet({ initialName, onClose, onSave }: EditProfileSh
 
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Скроллится ВНУТРЕННИЙ слой: фон с рваным краем лежит на неподвижной
           обёртке, иначе бумага уезжала бы вместе с контентом. */}

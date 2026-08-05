@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PaperSheet } from "@/components/ui/paper-sheet";
 import { paperCategoryDot } from "@/components/ui/paper-style";
 import { completeTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
+import { NO_CATEGORY } from "@/lib/logic/categories";
 import type { Task } from "@/types/task";
 
 interface TodayTasksProps {
@@ -116,7 +117,7 @@ export function TodayTasks({ uid, tasks }: TodayTasksProps) {
                 className={`h-1.5 w-1.5 rounded-full ${paperCategoryDot(task.category)}`}
                 aria-hidden="true"
               />
-              {task.category || "Без категории"}
+              {task.category || NO_CATEGORY}
             </span>
           </button>
 

@@ -14,13 +14,22 @@ interface SwipeToDeleteProps {
   onOpenChange: (open: boolean) => void;
   onDelete: () => void;
   label: string;
+  /** Заголовок категории живёт вне `<ul>`, поэтому обёртке нужен `div`, а не `li`. */
+  as?: "li" | "div";
 }
 
 /**
  * Обёртка строки списка: тянем влево — из-под карточки выезжает кнопка удаления.
  * Вертикальный скролл отдаём браузеру (touch-action: pan-y), горизонтальный ведём сами.
  */
-export function SwipeToDelete({ children, open, onOpenChange, onDelete, label }: SwipeToDeleteProps) {
+export function SwipeToDelete({
+  children,
+  open,
+  onOpenChange,
+  onDelete,
+  label,
+  as: Wrapper = "li",
+}: SwipeToDeleteProps) {
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const gesture = useRef<{ startX: number; startY: number; startOffset: number; axis: "x" | "y" | null } | null>(null);
@@ -86,7 +95,7 @@ export function SwipeToDelete({ children, open, onOpenChange, onDelete, label }:
   }
 
   return (
-    <li className="relative overflow-hidden rounded-xl">
+    <Wrapper className="relative overflow-hidden rounded-xl">
       {offset !== 0 && (
         <button
           type="button"
@@ -109,6 +118,6 @@ export function SwipeToDelete({ children, open, onOpenChange, onDelete, label }:
       >
         {children}
       </div>
-    </li>
+    </Wrapper>
   );
 }

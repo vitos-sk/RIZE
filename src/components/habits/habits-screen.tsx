@@ -13,6 +13,7 @@ import {
   setTaskCompletionForDate,
   uncompleteTask,
 } from "@/lib/firebase/tasks";
+import { mergeCategoryNames } from "@/lib/logic/categories";
 import { WEEKDAY_LABELS, formatDayMonth, fromDateKey } from "@/lib/logic/date";
 import {
   HABIT_RATE_DAYS,
@@ -20,6 +21,7 @@ import {
   type HabitDay,
   type HabitInsight,
 } from "@/lib/logic/habits";
+import type { Category } from "@/types/category";
 import type { Log } from "@/types/log";
 import type { Task } from "@/types/task";
 
@@ -27,10 +29,9 @@ interface HabitsScreenProps {
   uid: string;
   tasks: Task[];
   logs: Log[];
+  categories: Category[];
   todayKey: string;
 }
-
-const SUGGESTED_CATEGORIES = ["Спорт", "Здоровье", "Учёба"];
 
 /** «Каждый день» или перечисление дней — расписание привычки человеческими словами. */
 function scheduleLabel(task: Task): string {
@@ -66,7 +67,7 @@ function dayTone(day: HabitDay, isNegative: boolean): string {
   return day.isToday ? "border-2 border-dashed border-ink-soft/60 bg-paper/50" : "bg-ink-red/35";
 }
 
-export function HabitsScreen({ uid, tasks, logs, todayKey }: HabitsScreenProps) {
+export function HabitsScreen({ uid, tasks, logs, categories, todayKey }: HabitsScreenProps) {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [swipedId, setSwipedId] = useState<string | null>(null);
@@ -75,11 +76,7 @@ export function HabitsScreen({ uid, tasks, logs, todayKey }: HabitsScreenProps) 
 
   const data = useMemo(() => buildHabitsScreen(tasks, logs, todayKey), [tasks, logs, todayKey]);
 
-  const categories = useMemo(() => {
-    const set = new Set(SUGGESTED_CATEGORIES);
-    tasks.forEach((task) => set.add(task.category));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
-  }, [tasks]);
+  const categoryNames = useMemo(() => mergeCategoryNames(categories, tasks), [categories, tasks]);
 
   const initialCursor = useMemo(() => {
     const date = fromDateKey(todayKey);
@@ -344,7 +341,7 @@ export function HabitsScreen({ uid, tasks, logs, todayKey }: HabitsScreenProps) 
 
       {sheetOpen && (
         <TaskComposeFlow
-          categories={categories}
+          categories={categoryNames}
           todayKey={todayKey}
           initialCursor={initialCursor}
           initialType="habit"

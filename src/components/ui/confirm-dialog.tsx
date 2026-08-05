@@ -22,7 +22,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <>
-      <div className="absolute inset-0 z-30 bg-ink/45 backdrop-blur-sm" onClick={onCancel} />
+      <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
 
       <div
         role="dialog"

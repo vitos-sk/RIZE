@@ -33,10 +33,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Бумага — основной фон приложения: и строка состояния PWA, и первый кадр
-  // загрузки должны быть тёплыми, а не графитовыми.
-  themeColor: "#e8e1cf",
-  colorScheme: "light",
+  // Тёмный лист — основной фон приложения: и строка состояния PWA, и первый кадр
+  // загрузки должны быть угольными, светлой вспышки при запуске быть не должно.
+  themeColor: "#1a1512",
+  colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -55,7 +55,7 @@ export default function RootLayout({
       {/* Фон-бумага задан на body в globals.css — «телефон» и поле вокруг него
           на десктопе лежат на одном листе, поэтому тёмного кадра при загрузке нет. */}
       <body className="h-dvh font-sans text-ink antialiased">
-        <div className="paper-canvas relative isolate mx-auto flex h-dvh w-full max-w-107.5 flex-col overflow-hidden sm:border-x sm:border-ink/10 sm:shadow-2xl sm:shadow-ink/25">
+        <div className="paper-canvas relative isolate mx-auto flex h-dvh w-full max-w-107.5 flex-col overflow-hidden sm:border-x sm:border-ink/10 sm:shadow-2xl sm:shadow-black/60">
           <AuthProvider>{children}</AuthProvider>
         </div>
       </body>

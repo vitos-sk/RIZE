@@ -6,10 +6,13 @@ import type { ComponentType } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PaperSheet } from "@/components/ui/paper-sheet";
 import { paperCategoryDot, paperPriorityStroke } from "@/components/ui/paper-style";
+import { deleteCategory } from "@/lib/firebase/categories";
 import { completeTask, createTask, deleteTask, setTaskPriority, uncompleteTask } from "@/lib/firebase/tasks";
+import { NO_CATEGORY, isDeletableCategory, mergeCategoryNames } from "@/lib/logic/categories";
 import { fromDateKey } from "@/lib/logic/date";
 import { SwipeToDelete } from "./swipe-to-delete";
 import { TaskComposeFlow, type NewTaskInput } from "./task-compose-flow";
+import type { Category } from "@/types/category";
 import type { Task, TaskType } from "@/types/task";
 
 type Filter = "all" | TaskType;
@@ -18,6 +21,7 @@ type Sort = "priority" | "due" | "title";
 interface TasksScreenProps {
   uid: string;
   tasks: Task[];
+  categories: Category[];
   todayKey: string;
 }
 
@@ -40,11 +44,28 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "title", label: "Название" },
 ];
 
-const SUGGESTED_CATEGORIES = ["Работа", "Спорт", "Учёба", "Здоровье"];
-
 function formatDue(dateKey: string): string {
   const [year, month, day] = dateKey.split("-");
   return `${day}.${month}.${year.slice(2)}`;
+}
+
+/** «3 задачи переедут…» — что именно случится с содержимым удаляемой категории. */
+function categoryDeleteDescription(count: number): string {
+  if (count === 0) return "В категории нет задач — удаление ничего больше не затронет.";
+
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  const noun =
+    mod100 >= 11 && mod100 <= 14
+      ? "задач"
+      : mod10 === 1
+        ? "задача"
+        : mod10 >= 2 && mod10 <= 4
+          ? "задачи"
+          : "задач";
+  const verb = mod100 >= 11 && mod100 <= 14 ? "переедут" : mod10 === 1 ? "переедет" : "переедут";
+
+  return `${count} ${noun} ${verb} в «${NO_CATEGORY}». История выполнений сохранится, статистика не изменится.`;
 }
 
 function compareTasks(sort: Sort, a: Task, b: Task): number {
@@ -59,7 +80,7 @@ function compareTasks(sort: Sort, a: Task, b: Task): number {
   return a.priority - b.priority;
 }
 
-export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
+export function TasksScreen({ uid, tasks, categories, todayKey }: TasksScreenProps) {
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<Sort>("priority");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -68,7 +89,9 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [doneOpen, setDoneOpen] = useState(false);
   const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [swipedCategory, setSwipedCategory] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   async function confirmDelete() {
@@ -78,6 +101,20 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
       await deleteTask(uid, taskToDelete.id);
       setTaskToDelete(null);
       setSwipedId(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function confirmDeleteCategory() {
+    if (!categoryToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteCategory(uid, categoryToDelete);
+      setCategoryToDelete(null);
+      setSwipedCategory(null);
     } catch (error) {
       console.error(error);
     } finally {
@@ -124,11 +161,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     createTask(uid, input).catch(console.error);
   }
 
-  const categories = useMemo(() => {
-    const set = new Set(SUGGESTED_CATEGORIES);
-    tasks.forEach((task) => set.add(task.category));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
-  }, [tasks]);
+  const categoryNames = useMemo(() => mergeCategoryNames(categories, tasks), [categories, tasks]);
 
   const initialCursor = useMemo(() => {
     const date = fromDateKey(todayKey);
@@ -138,6 +171,9 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
   const groups = useMemo(() => {
     const filtered = filter === "all" ? tasks : tasks.filter((task) => task.type === filter);
     const byCategory = new Map<string, Task[]>();
+    // Пустые категории показываем только без фильтра: иначе вкладка «Привычка»
+    // тонет в заголовках категорий, где привычек нет. Зато их видно и можно удалить.
+    if (filter === "all") for (const name of categoryNames) byCategory.set(name, []);
     for (const task of filtered) {
       const list = byCategory.get(task.category) ?? [];
       list.push(task);
@@ -146,7 +182,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
     return Array.from(byCategory.entries())
       .sort(([a], [b]) => a.localeCompare(b, "ru"))
       .map(([category, list]) => [category, [...list].sort((a, b) => compareTasks(sort, a, b))] as const);
-  }, [tasks, filter, sort]);
+  }, [tasks, categoryNames, filter, sort]);
 
   const doneTasks = useMemo(() => {
     const filtered = filter === "all" ? tasks : tasks.filter((task) => task.type === filter);
@@ -318,27 +354,51 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             const isCollapsed = collapsed[category];
             const doneCount = categoryTasks.filter((task) => task.done).length;
             const activeTasks = categoryTasks.filter((task) => !task.done);
+
+            const header = (
+              <button
+                type="button"
+                onClick={() => toggleCategory(category)}
+                className="flex w-full items-center justify-between px-1 py-1"
+              >
+                <span className="flex items-baseline gap-2.5 font-hand text-2xl leading-none font-bold text-ink">
+                  <span
+                    className={`h-2.5 w-2.5 shrink-0 self-center rounded-full ${paperCategoryDot(category)}`}
+                    aria-hidden="true"
+                  />
+                  {category}
+                  <span className="font-note text-[0.8rem] font-normal text-ink-soft">
+                    {doneCount}/{categoryTasks.length}
+                  </span>
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-ink-soft transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                />
+              </button>
+            );
+
             return (
               <div key={category} className="flex flex-col gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => toggleCategory(category)}
-                  className="flex items-center justify-between px-1"
-                >
-                  <span className="flex items-baseline gap-2.5 font-hand text-2xl leading-none font-bold text-ink">
-                    <span
-                      className={`h-2.5 w-2.5 shrink-0 self-center rounded-full ${paperCategoryDot(category)}`}
-                      aria-hidden="true"
-                    />
-                    {category}
-                    <span className="font-note text-[0.8rem] font-normal text-ink-soft">
-                      {doneCount}/{categoryTasks.length}
-                    </span>
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 text-ink-soft transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
-                  />
-                </button>
+                {/* «Без категории» не свайпается: удалять её некуда — именно в неё
+                    переезжают задачи удалённых категорий. */}
+                {isDeletableCategory(category) ? (
+                  <SwipeToDelete
+                    as="div"
+                    open={swipedCategory === category}
+                    onOpenChange={(open) => {
+                      setSwipedCategory(open ? category : null);
+                      if (open) setSwipedId(null);
+                    }}
+                    onDelete={() => setCategoryToDelete(category)}
+                    label={`Удалить категорию «${category}»`}
+                  >
+                    {/* Под пальцем строке нужен непрозрачный фон — иначе сквозь неё
+                        видно кнопку удаления, лежащую слоем ниже. */}
+                    <div className={swipedCategory === category ? "paper-row-bg" : ""}>{header}</div>
+                  </SwipeToDelete>
+                ) : (
+                  header
+                )}
 
                 {!isCollapsed && (
                   <PaperSheet perforated innerClassName="pb-2">
@@ -346,7 +406,9 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
                       <ul>{activeTasks.map((task, index) => renderTaskRow(task, index))}</ul>
                     ) : (
                       <p className="px-5 py-7 text-center font-note text-[0.95rem] text-ink-soft">
-                        Все задачи категории выполнены
+                        {categoryTasks.length === 0
+                          ? "В категории пока нет задач"
+                          : "Все задачи категории выполнены"}
                       </p>
                     )}
                   </PaperSheet>
@@ -355,7 +417,7 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
             );
           })}
 
-          {groups.length === 0 && (
+          {(groups.length === 0 || tasks.length === 0) && (
             <PaperSheet perforated innerClassName="pb-2">
               <p className="px-6 py-8 text-center font-note text-[0.95rem] text-ink-soft">
                 {tasks.length === 0
@@ -412,9 +474,22 @@ export function TasksScreen({ uid, tasks, todayKey }: TasksScreenProps) {
         />
       )}
 
+      {categoryToDelete && (
+        <ConfirmDialog
+          title={`Удалить категорию «${categoryToDelete}»?`}
+          description={categoryDeleteDescription(
+            tasks.filter((task) => task.category === categoryToDelete).length,
+          )}
+          confirmLabel="Удалить"
+          pending={deleting}
+          onConfirm={confirmDeleteCategory}
+          onCancel={() => setCategoryToDelete(null)}
+        />
+      )}
+
       {sheetOpen && (
         <TaskComposeFlow
-          categories={categories}
+          categories={categoryNames}
           todayKey={todayKey}
           initialCursor={initialCursor}
           onClose={() => setSheetOpen(false)}

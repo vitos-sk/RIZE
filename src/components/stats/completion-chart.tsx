@@ -32,7 +32,8 @@ interface CompletionChartProps {
 // Recharts рисует подписи внутри <svg>, где классы Tailwind не работают —
 // шрифт и цвет чернил приходится задавать атрибутами.
 const AXIS_FONT = "var(--font-note)";
-const MISSED_FILL = "rgb(53 48 42 / 0.16)";
+// Пропущенное на тёмном листе — не тень чернил, а бледный мел.
+const MISSED_FILL = "rgb(236 228 215 / 0.16)";
 
 function axisTick(currentLabel: string) {
   return function AxisTick(props: {
@@ -166,7 +167,7 @@ export function CompletionChart({
               tickFormatter={(value: number) => `${value}%`}
               tick={{ fill: "var(--color-ink-soft)", fontSize: 12, fontFamily: AXIS_FONT }}
             />
-            <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgb(53 48 42 / 0.07)" }} />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgb(236 228 215 / 0.07)" }} />
             <Bar
               yAxisId="tasks"
               dataKey="done"

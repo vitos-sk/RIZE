@@ -7,7 +7,10 @@ import { buildMonthGrid, getMonthGridDates } from "@/lib/logic/calendar";
 import { buildCalendarData } from "@/lib/logic/calendar-data";
 import { toDateKey } from "@/lib/logic/date";
 import { createTask, setTaskCompletionForDate, subscribeAllTasks } from "@/lib/firebase/tasks";
+import { subscribeCategories } from "@/lib/firebase/categories";
 import { subscribeLogsInRange } from "@/lib/firebase/logs";
+import { mergeCategoryNames } from "@/lib/logic/categories";
+import type { Category } from "@/types/category";
 import type { Task } from "@/types/task";
 import type { Log } from "@/types/log";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
@@ -27,12 +30,18 @@ export default function CalendarPage() {
   const [composeInitialDate, setComposeInitialDate] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [logs, setLogs] = useState<Log[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const dateKeys = useMemo(() => getMonthGridDates(cursor.year, cursor.month), [cursor]);
 
   useEffect(() => {
     if (!user) return;
-    return subscribeAllTasks(user.uid, setTasks);
+    const unsubscribeTasks = subscribeAllTasks(user.uid, setTasks);
+    const unsubscribeCategories = subscribeCategories(user.uid, setCategories);
+    return () => {
+      unsubscribeTasks();
+      unsubscribeCategories();
+    };
   }, [user]);
 
   useEffect(() => {
@@ -45,10 +54,7 @@ export default function CalendarPage() {
     [tasks, logs, dateKeys],
   );
 
-  const categories = useMemo(
-    () => Array.from(new Set(tasks.map((task) => task.category))).sort((a, b) => a.localeCompare(b, "ru")),
-    [tasks],
-  );
+  const categoryNames = useMemo(() => mergeCategoryNames(categories, tasks), [categories, tasks]);
 
   const grid = useMemo(
     () => buildMonthGrid(cursor.year, cursor.month, logsByDate, tasksByDate, todayKey),
@@ -134,7 +140,7 @@ export default function CalendarPage() {
 
       {addFlowOpen && (
         <TaskComposeFlow
-          categories={categories}
+          categories={categoryNames}
           todayKey={todayKey}
           initialCursor={cursor}
           initialDate={composeInitialDate}

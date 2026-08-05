@@ -13,6 +13,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { ensureCategory } from "@/lib/firebase/categories";
 import { updateStreakOnCompletion } from "@/lib/logic/streak";
 import { toDateKey, weekdayLabel } from "@/lib/logic/date";
 import type { Priority, Task } from "@/types/task";
@@ -85,6 +86,8 @@ export async function createTask(
     doneAt: null,
     createdAt: Date.now(),
   });
+  // Категория из поля «Своё» становится полноценной: переживёт удаление своих задач.
+  await ensureCategory(uid, input.category);
 }
 
 /**

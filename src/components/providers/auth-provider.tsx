@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
+import { ensureDefaultCategories } from "@/lib/firebase/categories";
 import { ensureUserDoc } from "@/lib/firebase/users";
 
 interface AuthContextValue {
@@ -22,6 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       if (nextUser) {
         await ensureUserDoc(nextUser.uid, nextUser.email?.split("@")[0] ?? "Игрок");
+        // Сид дефолтных категорий идёт строго после документа пользователя:
+        // в нём лежит флаг, по которому сид не повторяется.
+        await ensureDefaultCategories(nextUser.uid);
       }
     });
   }, []);
