@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil } from "lucide-react";
+import { ChevronRight, Pencil, Smartphone } from "lucide-react";
 import { ProfileHero } from "@/components/profile/profile-hero";
 import { LifetimeSummary } from "@/components/profile/lifetime-summary";
 import { YearHeatmap } from "@/components/profile/year-heatmap";
@@ -11,10 +11,11 @@ import { TaskReliabilityCard } from "@/components/profile/task-reliability-card"
 import { StatsGrid } from "@/components/profile/stats-grid";
 import { AccountCard } from "@/components/profile/account-card";
 import { EditProfileSheet } from "@/components/profile/edit-profile-sheet";
+import { InstallGuideSheet } from "@/components/profile/install-guide-sheet";
 import { sendPasswordReset, signOutUser, updateDisplayName } from "@/lib/firebase/auth";
 import { updateUserDoc } from "@/lib/firebase/users";
 import { buildProfileInsights } from "@/lib/logic/profile";
-import type { FokusUser } from "@/types/user";
+import type { KaiznUser } from "@/types/user";
 import type { Task } from "@/types/task";
 import type { Log } from "@/types/log";
 
@@ -22,13 +23,14 @@ interface ProfileScreenProps {
   uid: string;
   email: string;
   fallbackName: string;
-  user: FokusUser | null;
+  user: KaiznUser | null;
   tasks: Task[];
   logs: Log[];
 }
 
 export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: ProfileScreenProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
 
   const insights = useMemo(() => buildProfileInsights(user, logs, tasks), [user, logs, tasks]);
 
@@ -56,6 +58,21 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
             </span>
           </button>
         </header>
+
+        {/* Памятка по установке видна всегда — приложение не проверяет,
+            запущено ли оно с главного экрана. */}
+        <button
+          type="button"
+          onClick={() => setInstallOpen(true)}
+          className="paper-sheet -mt-2 self-start transition-transform active:scale-[0.97]"
+        >
+          <span className="paper-chip-bg absolute inset-0" aria-hidden="true" />
+          <span className="relative flex items-center gap-1.5 px-2.5 py-1.5 font-note text-xs text-ink">
+            <Smartphone className="h-3.5 w-3.5 text-ink-soft" strokeWidth={2} />
+            Установить на телефон
+            <ChevronRight className="h-3.5 w-3.5 text-ink-soft" strokeWidth={2} />
+          </span>
+        </button>
 
         <ProfileHero
           displayName={displayName}
@@ -88,7 +105,7 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
         />
 
         <p className="text-center font-note text-xs text-ink-soft">
-          {insights.daysSinceStart} дн. в FokusTracker · {insights.totals.done} выполнений
+          {insights.daysSinceStart} дн. в Kaizn · {insights.totals.done} выполнений
         </p>
       </div>
 
@@ -99,6 +116,8 @@ export function ProfileScreen({ uid, email, fallbackName, user, tasks, logs }: P
           onSave={handleSaveName}
         />
       )}
+
+      {installOpen && <InstallGuideSheet onClose={() => setInstallOpen(false)} />}
     </div>
   );
 }

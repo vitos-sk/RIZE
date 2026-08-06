@@ -18,7 +18,7 @@ import { NO_CATEGORY } from "@/lib/logic/categories";
 import { updateStreakOnCompletion } from "@/lib/logic/streak";
 import { toDateKey, weekdayLabel } from "@/lib/logic/date";
 import type { Priority, Task, TaskType } from "@/types/task";
-import type { FokusUser } from "@/types/user";
+import type { KaiznUser } from "@/types/user";
 
 function tasksCollection(uid: string) {
   return collection(db, "users", uid, "tasks");
@@ -206,7 +206,7 @@ export async function completeTask(uid: string, task: Task): Promise<void> {
     const uRef = userRef(uid);
     const userSnap = await tx.get(uRef);
     if (!userSnap.exists()) throw new Error("Пользователь не найден");
-    const user = userSnap.data() as Omit<FokusUser, "uid">;
+    const user = userSnap.data() as Omit<KaiznUser, "uid">;
 
     const streak = updateStreakOnCompletion(
       {

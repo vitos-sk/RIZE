@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "FokusTracker",
-    short_name: "FokusTracker",
-    description: "Геймифицированный трекер задач, целей и привычек",
+    name: "Kaizn",
+    short_name: "Kaizn",
+    description: "Трекер задач, целей и привычек",
     start_url: "/",
     display: "standalone",
     // Splash-экран PWA — тот же тёмный лист, что и фон приложения.

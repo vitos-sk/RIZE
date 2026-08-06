@@ -82,7 +82,7 @@ export default function LoginPage() {
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 py-8">
         <header className="flex flex-col items-center gap-3 text-center">
           <PaperStamp />
-          <h1 className="font-hand text-[3rem] leading-none font-bold text-ink">FokusTracker</h1>
+          <h1 className="font-hand text-[3rem] leading-none font-bold text-ink">Kaizn</h1>
           <p className="max-w-[250px] font-note text-[0.95rem] leading-snug text-ink-soft">
             Держи дисциплину. Смотри, как растёт серия.
           </p>

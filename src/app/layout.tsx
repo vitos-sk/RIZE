@@ -28,8 +28,8 @@ const neucha = Neucha({
 });
 
 export const metadata: Metadata = {
-  title: "FokusTracker",
-  description: "Геймифицированный трекер задач, целей и привычек",
+  title: "Kaizn",
+  description: "Трекер задач, целей и привычек",
   // iOS не читает манифест: иконку для «Добавить на экран «Домой»» он берёт только
   // из apple-touch-icon, а название под ней — из appleWebApp.title.
   icons: {
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "FokusTracker",
+    title: "Kaizn",
     statusBarStyle: "black",
   },
   other: {

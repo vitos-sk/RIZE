@@ -1,4 +1,4 @@
-export interface FokusUser {
+export interface KaiznUser {
   uid: string;
   displayName: string;
   createdAt: number;

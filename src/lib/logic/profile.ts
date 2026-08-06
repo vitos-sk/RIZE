@@ -1,6 +1,6 @@
 import type { Log } from "@/types/log";
 import type { Task } from "@/types/task";
-import type { FokusUser } from "@/types/user";
+import type { KaiznUser } from "@/types/user";
 import {
   aggregateCompletion,
   buildDayStats,
@@ -248,7 +248,7 @@ function buildReliability(
 }
 
 export function buildProfileInsights(
-  user: FokusUser | null,
+  user: KaiznUser | null,
   logs: Log[],
   tasks: Task[],
   now: Date = new Date(),
